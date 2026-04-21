@@ -1,0 +1,16 @@
+{
+  "name": "skillbridge-attendance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Role-based attendance management prototype for the SkillBridge full-stack assignment.",
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "typecheck": "npm run typecheck --prefix frontend && npm run typecheck --prefix backend",
+    "test": "npm test --prefix frontend && npm test --prefix backend",
+    "build": "npm run build --prefix frontend && npm run build --prefix backend"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
