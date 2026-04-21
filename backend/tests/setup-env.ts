@@ -1,0 +1,7 @@
+process.env.NODE_ENV = 'test'
+process.env.PORT = '4000'
+process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/skillbridge'
+process.env.CLERK_SECRET_KEY = 'sk_test_dummy'
+process.env.CLERK_PUBLISHABLE_KEY = 'pk_test_dummy'
+process.env.FRONTEND_URL = 'http://localhost:5173'
+process.env.PROGRAMME_TIME_ZONE = 'Asia/Kolkata'

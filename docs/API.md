@@ -6,6 +6,8 @@ Base URL:
 http://localhost:4000
 ```
 
+Protected application routes are mounted under `/api`.
+
 Production API URL:
 
 ```text
@@ -34,22 +36,22 @@ Authorization: Bearer <clerk-session-token>
 | --- | --- | --- | --- |
 | GET | `/health` | Public | Deployment health check. |
 | GET | `/` | Public | API metadata. |
-| GET | `/me` | Required | Return synced local user profile. |
-| POST | `/me/sync` | Required | Create or update local user from Clerk profile and selected role. |
+| GET | `/api/me` | Required | Return synced local user profile. |
+| POST | `/api/me/sync` | Required | Create or update local user from Clerk profile and selected role. |
 
 ## Required Assignment Endpoints
 
 | Method | Path | Roles | Purpose |
 | --- | --- | --- | --- |
-| POST | `/batches` | `TRAINER`, `INSTITUTION` | Create a batch. |
-| POST | `/batches/:id/invite` | `TRAINER` | Generate a one-time or reusable invite link. |
-| POST | `/batches/:id/join` | `STUDENT` | Join a batch using an invite token. |
-| POST | `/sessions` | `TRAINER` | Create a session for an assigned batch. |
-| POST | `/attendance/mark` | `STUDENT` | Mark own attendance for an active enrolled session. |
-| GET | `/sessions/:id/attendance` | `TRAINER` | View attendance for a trainer-owned session. |
-| GET | `/batches/:id/summary` | `INSTITUTION` | View attendance summary for a batch in the institution. |
-| GET | `/institutions/:id/summary` | `PROGRAMME_MANAGER` | View all batch summaries for an institution. |
-| GET | `/programme/summary` | `PROGRAMME_MANAGER`, `MONITORING_OFFICER` | View programme-wide attendance summary. |
+| POST | `/api/batches` | `TRAINER`, `INSTITUTION` | Create a batch. |
+| POST | `/api/batches/:id/invite` | `TRAINER` | Generate a one-time or reusable invite link. |
+| POST | `/api/batches/:id/join` | `STUDENT` | Join a batch using an invite token. |
+| POST | `/api/sessions` | `TRAINER` | Create a session for an assigned batch. |
+| POST | `/api/attendance/mark` | `STUDENT` | Mark own attendance for an active enrolled session. |
+| GET | `/api/sessions/:id/attendance` | `TRAINER` | View attendance for a trainer-owned session. |
+| GET | `/api/batches/:id/summary` | `INSTITUTION` | View attendance summary for a batch in the institution. |
+| GET | `/api/institutions/:id/summary` | `PROGRAMME_MANAGER` | View all batch summaries for an institution. |
+| GET | `/api/programme/summary` | `PROGRAMME_MANAGER`, `MONITORING_OFFICER` | View programme-wide attendance summary. |
 
 ## Authorization Rules
 

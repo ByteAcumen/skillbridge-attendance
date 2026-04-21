@@ -30,8 +30,8 @@ These accounts will be created after Clerk and the seed script are configured.
 | --- | --- | --- |
 | Frontend | React, Vite, TypeScript | Fast local development, clean deployment to Vercel, strong typing for role-specific UI. |
 | UI | Tailwind CSS, lucide-react, reusable components | Professional interface without heavy design-system overhead. |
-| Backend | Node.js, Express, TypeScript | Simple REST API that maps directly to the assignment endpoints. |
-| Database | Neon PostgreSQL, Prisma | Hosted Postgres free tier, typed schema, migrations, and seed data. |
+| Backend | Node.js, Hono, TypeScript | Small, fast REST API that maps directly to the assignment endpoints. |
+| Database | Neon/PostgreSQL, Drizzle ORM | Hosted Postgres free tier, local Docker Postgres support, typed schema, migrations, and seed data. |
 | Auth | Clerk | Signup/login, hosted auth UI support, and backend token verification. |
 | Deployment | Vercel frontend, Railway backend, Render fallback | Matches the recommended stack and stays free-tier friendly for a prototype. |
 | CI/CD | GitHub Actions | Lint, typecheck, test, and build checks before deployment. |
@@ -131,8 +131,8 @@ Working:
 
 - Repository scaffold.
 - React/Vite frontend setup.
-- Express/TypeScript backend setup with health endpoint.
-- Prisma schema draft for the assignment data model.
+- Hono/TypeScript backend setup with health endpoint.
+- Drizzle schema and migrations for the assignment data model.
 - README, planning docs, deployment checklist, and CI workflow.
 
 Next:

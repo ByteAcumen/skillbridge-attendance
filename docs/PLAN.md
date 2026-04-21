@@ -15,7 +15,7 @@ The assignment values a working deployed prototype over a polished product. The 
 | Layer | Tooling |
 | --- | --- |
 | Frontend | Vite, React, TypeScript, Tailwind CSS |
-| Backend | Express, TypeScript, Zod, Prisma |
+| Backend | Hono, TypeScript, Zod, Drizzle ORM |
 | Database | Neon PostgreSQL |
 | Auth | Clerk |
 | Frontend hosting | Vercel |

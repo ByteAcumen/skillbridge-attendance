@@ -1,60 +1,72 @@
-import cors from 'cors'
-import express from 'express'
-import helmet from 'helmet'
-import morgan from 'morgan'
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { logger } from 'hono/logger'
+import { env } from './lib/env.js'
+import { serverError } from './lib/errors.js'
 
-const plannedRoutes = [
-  'POST /batches',
-  'POST /batches/:id/invite',
-  'POST /batches/:id/join',
-  'POST /sessions',
-  'POST /attendance/mark',
-  'GET /sessions/:id/attendance',
-  'GET /batches/:id/summary',
-  'GET /institutions/:id/summary',
-  'GET /programme/summary',
-]
+import { attendanceRouter } from './routes/attendance.js'
+import { batchesRouter } from './routes/batches.js'
+import { institutionsRouter } from './routes/institutions.js'
+import { meRouter } from './routes/me.js'
+import { programmeRouter } from './routes/programme.js'
+import { sessionsRouter } from './routes/sessions.js'
 
-export function createApp() {
-  const app = express()
-  const allowedOrigins = (process.env.FRONTEND_URL ?? 'http://localhost:5173')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean)
+export type Role =
+  | 'STUDENT'
+  | 'TRAINER'
+  | 'INSTITUTION'
+  | 'PROGRAMME_MANAGER'
+  | 'MONITORING_OFFICER'
 
-  app.use(helmet())
-  app.use(cors({ origin: allowedOrigins, credentials: true }))
-  app.use(express.json())
-
-  if (process.env.NODE_ENV !== 'test') {
-    app.use(morgan('dev'))
+export type AppEnv = {
+  Variables: {
+    user?: {
+      id: string
+      clerkUserId: string
+      role: Role
+      institutionId: string | null
+    }
   }
-
-  app.get('/', (_request, response) => {
-    response.json({
-      name: 'SkillBridge Attendance API',
-      status: 'scaffolded',
-      docs: '/health',
-      plannedRoutes,
-    })
-  })
-
-  app.get('/health', (_request, response) => {
-    response.json({
-      ok: true,
-      service: 'skillbridge-attendance-api',
-      environment: process.env.NODE_ENV ?? 'development',
-      timestamp: new Date().toISOString(),
-    })
-  })
-
-  app.use('/api', (_request, response) => {
-    response.status(501).json({
-      error: 'NotImplemented',
-      message: 'SkillBridge assignment routes are planned and will be implemented next.',
-      plannedRoutes,
-    })
-  })
-
-  return app
 }
+
+export const app = new Hono<AppEnv>()
+
+app.use('*', logger())
+app.use(
+  '*',
+  cors({
+    origin: env.FRONTEND_URL.split(',').map((origin) => origin.trim()),
+    credentials: true,
+  }),
+)
+
+app.onError((err, c) => {
+  console.error('[Unhandled Error]', err)
+  return serverError(c, 'An unexpected server error occurred.')
+})
+
+app.notFound((c) => c.json({ error: 'NotFound', message: 'API route not found' }, 404))
+
+app.get('/', (c) =>
+  c.json({
+    name: 'SkillBridge API',
+    status: 'running',
+    framework: 'Hono',
+    version: '1.0.0',
+  }),
+)
+
+app.get('/health', (c) =>
+  c.json({
+    ok: true,
+    environment: env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  }),
+)
+
+app.route('/api/me', meRouter)
+app.route('/api/batches', batchesRouter)
+app.route('/api/sessions', sessionsRouter)
+app.route('/api/attendance', attendanceRouter)
+app.route('/api/programme', programmeRouter)
+app.route('/api/institutions', institutionsRouter)

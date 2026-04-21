@@ -69,6 +69,14 @@ jobs:
         run: npm test
         working-directory: backend
 
+      - name: Audit dependencies
+        run: npm audit
+        working-directory: backend
+
       - name: Build
         run: npm run build
+        working-directory: backend
+
+      - name: Build Docker image
+        run: docker build -t skillbridge-api:ci .
         working-directory: backend

@@ -1,0 +1,2 @@
+ALTER TABLE "batch_students" ADD CONSTRAINT "batch_students_batch_id_student_id_pk" PRIMARY KEY("batch_id","student_id");--> statement-breakpoint
+ALTER TABLE "batch_trainers" ADD CONSTRAINT "batch_trainers_batch_id_trainer_id_pk" PRIMARY KEY("batch_id","trainer_id");
