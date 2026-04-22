@@ -6,6 +6,13 @@ Base URL:
 http://localhost:4000
 ```
 
+The assignment lists endpoint paths without a namespace, such as `/batches`.
+This implementation mounts protected application routes under `/api`, so that endpoint is:
+
+```text
+http://localhost:4000/api/batches
+```
+
 Protected endpoints require:
 
 ```text
@@ -56,6 +63,8 @@ For Postman/local testing, use the development seed tokens:
 | POST | `/api/batches/:id/invite` | Trainer | Generate invite token |
 | POST | `/api/batches/:id/join` | Student | Join batch using invite token |
 | GET | `/api/batches/:id/summary` | Institution | Per-student attendance summary |
+
+Successful create/join responses use `201 Created`.
 
 Create batch:
 
@@ -135,6 +144,20 @@ Trainer override:
 | GET | `/api/programme/summary` | Programme Manager, Monitoring Officer | Programme-wide summary |
 | GET | `/api/programme/monitoring` | Monitoring Officer | Backward-compatible read-only summary |
 | GET | `/api/programme/manager-insights` | Programme Manager | Backward-compatible manager insights |
+
+## Assignment Endpoint Map
+
+| Assignment path | Implemented path | Roles |
+| --- | --- | --- |
+| `POST /batches` | `POST /api/batches` | Trainer, Institution |
+| `POST /batches/:id/invite` | `POST /api/batches/:id/invite` | Trainer |
+| `POST /batches/:id/join` | `POST /api/batches/:id/join` | Student |
+| `POST /sessions` | `POST /api/sessions` | Trainer |
+| `POST /attendance/mark` | `POST /api/attendance/mark` | Student |
+| `GET /sessions/:id/attendance` | `GET /api/sessions/:id/attendance` | Trainer |
+| `GET /batches/:id/summary` | `GET /api/batches/:id/summary` | Institution |
+| `GET /institutions/:id/summary` | `GET /api/institutions/:id/summary` | Programme Manager, Monitoring Officer read-only |
+| `GET /programme/summary` | `GET /api/programme/summary` | Programme Manager, Monitoring Officer |
 
 ## Status Codes
 

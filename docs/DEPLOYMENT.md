@@ -123,6 +123,21 @@ GitHub Actions runs:
 - Backend Docker image build.
 - Backend integration smoke tests against a real Postgres service.
 
+The repository also includes a manual CD workflow:
+
+```text
+.github/workflows/deploy.yml
+```
+
+It verifies both apps, builds the backend Docker image, then deploys the backend through Railway CLI. Add these GitHub repository secrets before running it:
+
+```text
+RAILWAY_TOKEN=
+RAILWAY_SERVICE_ID=
+```
+
+Vercel frontend deployment is expected to run through the normal Vercel GitHub integration after importing the `frontend/` directory.
+
 ## Submission Checklist
 
 - Frontend deployed URL opens.

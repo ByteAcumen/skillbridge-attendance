@@ -1,111 +1,71 @@
-name: SkillBridge CD — Deploy
+name: SkillBridge CD
 
-# ─── Trigger ──────────────────────────────────────────────────────────────────
-# Only runs on pushes to main (not feature branches).
-# Vercel handles its own deployment via GitHub integration automatically.
-# This workflow handles Railway (backend Docker) re-deployment.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  # ─── Step 1: Run full CI first ──────────────────────────────────────────────
-  # We reuse the same test + build logic. If anything is broken,
-  # deployment is blocked. Never ship broken code.
-  test-backend:
-    name: Test Backend Before Deploy
+  verify:
+    name: Verify Before Deploy
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
-        working-directory: backend
-
-      - name: Type check
-        run: npm run typecheck
-        working-directory: backend
-
-      - name: Run tests
-        run: npm test
-        working-directory: backend
-
-      - name: Build
-        run: npm run build
-        working-directory: backend
-
-  test-frontend:
-    name: Test Frontend Before Deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
         working-directory: frontend
 
-      - name: Lint
-        run: npm run lint
+      - name: Verify frontend
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run build
         working-directory: frontend
 
-      - name: Build
-        run: npm run build
-        working-directory: frontend
-        env:
-          # Dummy public key for build (Vercel sets the real one at runtime)
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
 
-  # ─── Step 2: Deploy Backend to Railway ──────────────────────────────────────
-  # Only runs if both test jobs pass (needs: [...]).
-  # Uses the Railway CLI to trigger a redeploy of the backend service.
+      - name: Verify backend
+        run: |
+          npm run typecheck
+          npm test
+          npm run build
+        working-directory: backend
+
+      - name: Build backend Docker image
+        run: docker build -t skillbridge-api:cd .
+        working-directory: backend
+
   deploy-backend:
-    name: Deploy Backend → Railway
+    name: Deploy Backend To Railway
     runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
+    needs: verify
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy to Railway
-        # RAILWAY_TOKEN must be set in GitHub Secrets
-        # Get it: Railway Dashboard → Account Settings → Tokens
-        run: railway up --service ${{ secrets.RAILWAY_SERVICE_ID }} --detach
+      - name: Deploy backend
+        run: railway up --service "${{ secrets.RAILWAY_SERVICE_ID }}" --detach
         working-directory: backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Deployment summary
+      - name: Deployment note
         run: |
-          echo "✅ Backend deployed to Railway successfully!"
-          echo "🔗 Check your Railway dashboard for the live URL."
-
-  # ─── Note on Frontend Deployment ────────────────────────────────────────────
-  # Vercel automatically deploys the frontend whenever you push to main,
-  # because of the GitHub integration you set up in the Vercel dashboard.
-  # No action needed here — Vercel handles it for free!
-  notify-vercel:
-    name: Vercel Auto-Deploy (Info)
-    runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
-    steps:
-      - name: Vercel auto-deploys
-        run: |
-          echo "ℹ️  Vercel automatically deploys the frontend on push to main."
-          echo "ℹ️  Check https://vercel.com/dashboard for the live frontend URL."
+          echo "Backend deploy command completed."
+          echo "Frontend deployment is expected to be handled by Vercel Git integration."

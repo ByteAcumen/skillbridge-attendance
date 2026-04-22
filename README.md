@@ -8,9 +8,11 @@ This project was built for a 2-3 day take-home assignment, so the priority is a 
 
 | Service | URL |
 | --- | --- |
-| Frontend | TBD |
-| Backend | TBD |
-| API base URL | TBD |
+| Frontend | TBD - deploy `frontend/` to Vercel |
+| Backend | TBD - deploy `backend/` to Railway or Render |
+| API base URL | TBD - local default is `http://localhost:4000` |
+
+The app is deployment-ready, but the final public URLs should be filled in after Vercel/Railway deployment.
 
 ## Current Local URLs
 
@@ -49,6 +51,18 @@ cd D:\skillbridge-attendance\backend
 npm run accounts:seed
 ```
 
+## Seeded Demo Data
+
+The seed scripts create enough real data to test every role immediately.
+
+| Item | ID / Value | Used by |
+| --- | --- | --- |
+| Institution | `inst_demo_state_polytechnic` | Institution, Programme Manager, Monitoring Officer |
+| Demo batch | `batch_demo_frontend_1` | Student, Trainer, Institution |
+| Active demo session | `session_demo_active_react` | Student attendance marking |
+| Clerk test batch | `batch_test_frontend_accounts` | Frontend login test accounts |
+| Clerk test session | `session_test_active_accounts` | Frontend student dashboard |
+
 ## Tech Stack
 
 | Layer | Tooling | Why |
@@ -62,6 +76,21 @@ npm run accounts:seed
 | Deployment | Vercel frontend, Railway/Render backend, Neon DB | Free-tier friendly assignment stack. |
 | CI/CD | GitHub Actions | Frontend, backend, Docker build, and integration smoke checks. |
 | AI feature | Deterministic insights card | AI-style recommendations without requiring paid LLM keys. |
+
+## Assignment Alignment
+
+| Requirement | Status | Notes |
+| --- | --- | --- |
+| Five roles can sign up and log in | Done | Clerk auth plus `/onboarding` role selection. |
+| Role-specific dashboard routing | Done | `/dashboard` renders Student, Trainer, Institution, Programme Manager, or Monitoring Officer views. |
+| Backend verifies auth and role | Done | Every protected route checks the bearer token and local role server-side. |
+| Trainer batch invite links | Done | Trainers generate reusable invite tokens; students join batches with token + batch ID. |
+| Required data model | Done | Users, batches, batch trainers, batch students, sessions, attendance, plus institutions and invites. |
+| Required REST endpoints | Done | Implemented under a conventional `/api` prefix. Example: assignment `/batches` is `/api/batches`. |
+| Real API-backed frontend data | Done | Dashboards call the backend; core role data is not hardcoded. |
+| Monitoring Officer read-only access | Done | UI has no mutation controls and backend returns `403` for writes. |
+| Deployment documentation | Done | Vercel, Railway, Render, Neon, and Clerk checklist included in `docs/DEPLOYMENT.md`. |
+| CI/CD and Docker | Done | CI runs frontend/backend checks and Docker build; CD workflow is manual for Railway secrets. |
 
 ## What Works
 
@@ -151,6 +180,8 @@ For Postman, use:
 Authorization: Bearer user_seed_student
 ```
 
+For real Clerk login testing, sign in with the test account email/password above. In the browser, Clerk issues a session token automatically; the frontend attaches it to API calls.
+
 Dev tokens:
 
 | Token | Role |
@@ -162,6 +193,16 @@ Dev tokens:
 | `user_seed_monitor` | Monitoring Officer |
 
 Full API reference: [docs/API.md](docs/API.md).
+
+Quick Postman examples:
+
+| Goal | Method and URL | Token |
+| --- | --- | --- |
+| Current student profile | `GET http://localhost:4000/api/me` | `user_seed_student` |
+| Student active sessions | `GET http://localhost:4000/api/sessions/active` | `user_seed_student` |
+| Trainer batches | `GET http://localhost:4000/api/batches` | `user_seed_trainer` |
+| Institution batch summary | `GET http://localhost:4000/api/batches/batch_demo_frontend_1/summary` | `user_seed_institution` |
+| Programme summary | `GET http://localhost:4000/api/programme/summary` | `user_seed_manager` or `user_seed_monitor` |
 
 ## Verification
 
@@ -200,8 +241,15 @@ docker compose run --rm migrate sh -c "npm run accounts:seed"
 - Render fallback: deploy `backend/` as a Web Service.
 - Neon: hosted PostgreSQL.
 - Clerk: auth provider for frontend/backend.
+- GitHub Actions: CI runs automatically; Railway CD can be triggered manually after adding repository secrets.
 
 Deployment checklist: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+## Submission Notes
+
+- Update the Live URLs section after deployment.
+- Update `CONTACT.txt` with final personal contact details before uploading the Google Drive submission folder.
+- Keep `.env`, `.env.local`, and hosted secrets out of GitHub.
 
 ## What I Would Improve With More Time
 

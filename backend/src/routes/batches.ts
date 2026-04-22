@@ -170,7 +170,7 @@ batchesRouter.post('/:id/invite', requireRole('TRAINER'), async (c) => {
     })
     .returning()
 
-  return c.json({ invite })
+  return c.json({ invite }, 201)
 })
 
 /**
@@ -211,7 +211,7 @@ batchesRouter.post('/:id/join', requireRole('STUDENT'), async (c) => {
     .set({ usesCount: sql`${batchInvites.usesCount} + 1` })
     .where(eq(batchInvites.id, invite.id))
 
-  return c.json({ ok: true, message: 'Joined batch successfully.' })
+  return c.json({ ok: true, message: 'Joined batch successfully.' }, 201)
 })
 
 /**

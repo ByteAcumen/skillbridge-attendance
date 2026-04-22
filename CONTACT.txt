@@ -1,5 +1,5 @@
-Full name: TBD
-Email: TBD
-Phone: TBD
+Full name: Hemanth Kumar
+Email: TODO - add your email before submission
+Phone: TODO - add your phone before submission
 GitHub profile: https://github.com/ByteAcumen
-Most challenging part: TBD after implementation.
+Most challenging part: Keeping Clerk authentication, local role sync, and server-side role permissions consistent across all five dashboards.
