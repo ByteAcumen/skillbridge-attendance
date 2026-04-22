@@ -1,33 +1,31 @@
-# Deployment Checklist
+# Deployment Guide
 
-## Providers
+## Recommended Free-Tier Stack
 
-| Layer | Provider | Notes |
-| --- | --- | --- |
-| Frontend | Vercel | Deploy from `/frontend`. |
-| Backend | Railway | Deploy from `/backend`. |
-| Backend fallback | Render | Use if Railway credits or deployment are unavailable. |
-| Database | Neon PostgreSQL | Use pooled connection string for serverless-style deployments if needed. |
-| Auth | Clerk | Configure allowed origins and redirect URLs. |
+| Layer | Provider |
+| --- | --- |
+| Frontend | Vercel |
+| Backend | Railway |
+| Backend fallback | Render |
+| Database | Neon PostgreSQL |
+| Auth | Clerk |
+| CI/CD | GitHub Actions |
 
-## Frontend Environment
+## Environment Variables
 
-Create these variables in Vercel:
-
-```text
-VITE_CLERK_PUBLISHABLE_KEY=
-VITE_API_BASE_URL=
-```
-
-Local file:
+### Frontend - Vercel
 
 ```text
-frontend/.env.local
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_API_BASE_URL=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/onboarding
 ```
 
-## Backend Environment
-
-Create these variables in Railway or Render:
+### Backend - Railway or Render
 
 ```text
 NODE_ENV=production
@@ -35,61 +33,72 @@ PORT=4000
 DATABASE_URL=
 CLERK_SECRET_KEY=
 CLERK_PUBLISHABLE_KEY=
-CLERK_JWT_KEY=
 FRONTEND_URL=
-AI_PROVIDER=deterministic
-OPENAI_API_KEY=
+PROGRAMME_TIME_ZONE=Asia/Kolkata
+GOOGLE_GENERATIVE_AI_API_KEY=
 ```
 
-Local file:
+`GOOGLE_GENERATIVE_AI_API_KEY` is optional. The current insights feature works without paid AI credentials.
 
-```text
-backend/.env
-```
+## Clerk Setup
 
-`OPENAI_API_KEY` is optional and should not be required for the app to run.
+1. Create or claim a Clerk application.
+2. Enable email/password.
+3. Add local URLs during development:
+   - `http://localhost:3000`
+   - `http://localhost:4000`
+4. Add deployed frontend URL after Vercel deployment.
+5. Copy the same Clerk publishable/secret key pair into frontend and backend env files.
 
-## Neon
+For development test accounts, use addresses containing `+clerk_test` and verification code `424242`.
+
+## Neon Setup
 
 1. Create a Neon project.
 2. Copy the PostgreSQL connection string.
 3. Set `DATABASE_URL` in `backend/.env` and the backend hosting provider.
-4. Run Prisma migrations from the backend folder.
-5. Run the seed script when it exists.
+4. From `backend/`, run:
 
-## Clerk
+```bash
+npm run db:migrate
+npm run db:seed
+```
 
-1. Create a Clerk application.
-2. Enable email/password auth for reviewer-friendly test accounts.
-3. Add frontend local and production URLs to allowed origins.
-4. Copy publishable and secret keys.
-5. Configure signup to capture the selected SkillBridge role.
+## Vercel Frontend
 
-## Vercel
-
-1. Import the GitHub repository.
+1. Import GitHub repository.
 2. Set root directory to `frontend`.
 3. Add frontend environment variables.
 4. Deploy.
 
-## Railway
+Build command:
 
-1. Create a new Railway project from GitHub.
+```text
+npm run build
+```
+
+Output is handled automatically by Next.js on Vercel.
+
+## Railway Backend
+
+1. Create a Railway project from GitHub.
 2. Set root directory to `backend`.
 3. Add backend environment variables.
-4. Use build command:
+4. Deploy with the Dockerfile or Node build/start commands.
+
+Build command:
 
 ```text
 npm install && npm run build
 ```
 
-5. Use start command:
+Start command:
 
 ```text
 npm start
 ```
 
-6. Verify:
+Verify:
 
 ```text
 GET /health
@@ -97,29 +106,29 @@ GET /health
 
 ## Render Fallback
 
-If Railway is unavailable:
+1. Create a Web Service.
+2. Root directory: `backend`.
+3. Build command: `npm install && npm run build`.
+4. Start command: `npm start`.
+5. Add the same backend environment variables.
 
-1. Create a new Web Service from GitHub.
-2. Set root directory to `backend`.
-3. Build command:
+Render free services sleep after inactivity, so the first request can be slow.
 
-```text
-npm install && npm run build
-```
+## CI/CD
 
-4. Start command:
+GitHub Actions runs:
 
-```text
-npm start
-```
+- Frontend lint, typecheck, test, build.
+- Backend typecheck, tests, audit, build.
+- Backend Docker image build.
+- Backend integration smoke tests against a real Postgres service.
 
-Render free services can sleep after inactivity, so the first request may be slow.
+## Submission Checklist
 
-## Final Submission Checklist
-
-- Frontend live URL works.
+- Frontend deployed URL opens.
 - Backend `/health` returns JSON.
-- All five test accounts are listed in README.
+- README includes live URLs.
+- README includes five test accounts.
 - Each role can log in and see the correct dashboard.
-- Monitoring Officer has no mutation UI.
-- README documents what is complete, partial, and skipped.
+- Monitoring Officer has read-only UI.
+- Any incomplete feature is documented honestly.

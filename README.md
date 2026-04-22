@@ -1,8 +1,8 @@
 # SkillBridge Attendance
 
-SkillBridge Attendance is a deployed full-stack prototype for the Full Stack Developer Intern take-home assignment. It models a fictional state-level skilling programme where Students, Trainers, Institutions, Programme Managers, and Monitoring Officers interact with real attendance data through role-specific dashboards.
+SkillBridge Attendance is a full-stack prototype for a fictional state-level skilling programme. It supports five roles: Student, Trainer, Institution, Programme Manager, and Monitoring Officer. Each role signs in with Clerk, then sees a focused dashboard backed by real REST API calls and PostgreSQL data.
 
-The goal is a practical MVP: secure authentication, server-side role checks, real PostgreSQL-backed data, clear deployment steps, and honest documentation.
+This project was built for a 2-3 day take-home assignment, so the priority is a working, honest, deployable MVP rather than a polished enterprise product.
 
 ## Live URLs
 
@@ -12,63 +12,84 @@ The goal is a practical MVP: secure authentication, server-side role checks, rea
 | Backend | TBD |
 | API base URL | TBD |
 
+## Current Local URLs
+
+| Service | URL |
+| --- | --- |
+| Frontend | `http://localhost:3000` |
+| Backend | `http://localhost:4000` |
+| Health check | `http://localhost:4000/health` |
+
 ## Test Accounts
 
-These accounts will be created after Clerk and the seed script are configured.
+These are Clerk development test accounts. If Clerk asks for an email verification or new-device code, use:
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Student | `student@skillbridge.test` | TBD |
-| Trainer | `trainer@skillbridge.test` | TBD |
-| Institution | `institution@skillbridge.test` | TBD |
-| Programme Manager | `manager@skillbridge.test` | TBD |
-| Monitoring Officer | `monitor@skillbridge.test` | TBD |
+```text
+424242
+```
+
+Password for all accounts:
+
+```text
+SkillBridge@2026!
+```
+
+| Role | Email |
+| --- | --- |
+| Student | `student+clerk_test@example.com` |
+| Trainer | `trainer+clerk_test@example.com` |
+| Institution | `institution+clerk_test@example.com` |
+| Programme Manager | `manager+clerk_test@example.com` |
+| Monitoring Officer | `monitor+clerk_test@example.com` |
+
+Recreate or refresh these accounts:
+
+```powershell
+cd D:\skillbridge-attendance\backend
+npm run accounts:seed
+```
 
 ## Tech Stack
 
-| Layer | Choice | Why |
+| Layer | Tooling | Why |
 | --- | --- | --- |
-| Frontend | React, Vite, TypeScript | Fast local development, clean deployment to Vercel, strong typing for role-specific UI. |
-| UI | Tailwind CSS, lucide-react, reusable components | Professional interface without heavy design-system overhead. |
-| Backend | Node.js, Hono, TypeScript | Small, fast REST API that maps directly to the assignment endpoints. |
-| Database | Neon/PostgreSQL, Drizzle ORM | Hosted Postgres free tier, local Docker Postgres support, typed schema, migrations, and seed data. |
-| Auth | Clerk | Signup/login, hosted auth UI support, and backend token verification. |
-| Deployment | Vercel frontend, Railway backend, Render fallback | Matches the recommended stack and stays free-tier friendly for a prototype. |
-| CI/CD | GitHub Actions | Lint, typecheck, test, and build checks before deployment. |
-| AI-first addition | Deterministic AI Insights card with optional LLM polishing | Shows AI judgment while keeping the app deployable without paid API credits. |
+| Frontend | Next.js 16 App Router, React 19, TypeScript | Vercel-ready UI with clean routing and modern React. |
+| Styling | Tailwind CSS v4, Lucide icons, reusable components | Professional interface without heavy UI dependencies. |
+| Auth | Clerk | Hosted sign-in/sign-up, JWTs, user management, test-mode accounts. |
+| Backend | Hono, TypeScript, Zod | Fast REST API with simple route/middleware structure. |
+| Database | PostgreSQL, Drizzle ORM | Real relational schema with typed queries and migrations. |
+| Dev database | Docker Postgres | Local reproducible database. |
+| Deployment | Vercel frontend, Railway/Render backend, Neon DB | Free-tier friendly assignment stack. |
+| CI/CD | GitHub Actions | Frontend, backend, Docker build, and integration smoke checks. |
+| AI feature | Deterministic insights card | AI-style recommendations without requiring paid LLM keys. |
 
-## Core Features Planned
+## What Works
 
-- Role-based signup and login for all five roles.
-- Backend verification of Clerk tokens and local user roles on every protected API route.
-- Student dashboard for active sessions and self-marking attendance.
-- Trainer dashboard for batch management, invite links, session creation, and attendance views.
-- Institution dashboard for trainers, batches, and attendance summaries.
-- Programme Manager dashboard for cross-institution summaries.
-- Monitoring Officer dashboard with read-only programme-wide attendance rates.
-- AI Insights card that summarizes attendance risks and recommendations from real data.
+- Clerk sign-up and sign-in.
+- Role onboarding through `POST /api/me/sync`.
+- Server-side token verification and role authorization.
+- Student active sessions and attendance marking.
+- Trainer batch/session creation, invite generation, and attendance views.
+- Institution batch summaries.
+- Programme Manager programme and institution summaries.
+- Monitoring Officer read-only analytics.
+- Dev Postman tokens for quick API testing.
+- Docker backend build and compose setup.
+- GitHub Actions CI for frontend, backend, Docker, and integration checks.
 
 ## Project Structure
 
 ```text
 skillbridge-attendance/
-  backend/             Express API, Prisma schema, tests
-  frontend/            Vite React app
-  docs/                Planning, API, and deployment notes
-  .github/workflows/   CI pipeline
-  CONTACT.txt          Submission contact details placeholder
+  frontend/             Next.js App Router frontend
+  backend/              Hono + Drizzle REST API
+  docs/                 Plan, API reference, deployment notes
+  .github/workflows/    CI pipeline
+  CONTACT.txt
   README.md
 ```
 
 ## Local Setup
-
-Prerequisites:
-
-- Node.js 22.12 or newer
-- npm
-- Git
-- Clerk account
-- Neon PostgreSQL database
 
 Install dependencies:
 
@@ -85,70 +106,107 @@ Copy-Item frontend\.env.example frontend\.env.local
 Copy-Item backend\.env.example backend\.env
 ```
 
-Run the frontend:
+Make sure frontend and backend use the same Clerk app:
 
-```powershell
-npm run dev:frontend
+```text
+frontend/.env.local
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+  CLERK_SECRET_KEY=...
+  NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+
+backend/.env
+  CLERK_PUBLISHABLE_KEY=...
+  CLERK_SECRET_KEY=...
+  FRONTEND_URL=http://localhost:3000
 ```
 
-Run the backend:
+Prepare the database:
 
 ```powershell
-npm run dev:backend
+cd D:\skillbridge-attendance\backend
+npm run db:migrate
+npm run db:seed
+npm run accounts:seed
 ```
 
-Run checks:
+Run backend:
 
 ```powershell
+cd D:\skillbridge-attendance\backend
+npm run dev
+```
+
+Run frontend:
+
+```powershell
+cd D:\skillbridge-attendance\frontend
+npm run dev
+```
+
+## API Testing
+
+For Postman, use:
+
+```text
+Authorization: Bearer user_seed_student
+```
+
+Dev tokens:
+
+| Token | Role |
+| --- | --- |
+| `user_seed_student` | Student |
+| `user_seed_trainer` | Trainer |
+| `user_seed_institution` | Institution |
+| `user_seed_manager` | Programme Manager |
+| `user_seed_monitor` | Monitoring Officer |
+
+Full API reference: [docs/API.md](docs/API.md).
+
+## Verification
+
+Frontend:
+
+```powershell
+cd D:\skillbridge-attendance\frontend
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Backend:
+
+```powershell
+cd D:\skillbridge-attendance\backend
 npm run typecheck
 npm test
 npm run build
 ```
 
-## Deployment Plan
+Docker backend:
 
-- Vercel deploys `/frontend`.
-- Railway deploys `/backend`.
-- Render can deploy `/backend` if Railway credits are unavailable.
-- Neon hosts PostgreSQL.
-- Clerk manages authentication.
-- GitHub Actions runs checks on push and pull requests.
+```powershell
+cd D:\skillbridge-attendance\backend
+docker build -t skillbridge-api:local .
+docker compose up --build
+docker compose run --rm migrate sh -c "npm run db:seed"
+docker compose run --rm migrate sh -c "npm run accounts:seed"
+```
 
-Environment variables are documented in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+## Deployment
 
-## Schema Decisions
+- Vercel: deploy `frontend/`.
+- Railway: deploy `backend/` with Dockerfile or `npm run build && npm start`.
+- Render fallback: deploy `backend/` as a Web Service.
+- Neon: hosted PostgreSQL.
+- Clerk: auth provider for frontend/backend.
 
-The assignment's required entities are preserved: users, batches, batch trainers, batch students, sessions, and attendance. Two support tables are planned:
-
-- `institutions`: makes institution ownership explicit instead of overloading user records.
-- `batch_invites`: stores reusable or one-time invite tokens for student onboarding.
-
-Prisma models use camelCase in TypeScript and map to snake_case database columns where useful, keeping code readable while matching the assignment vocabulary.
-
-## Current Status
-
-Working:
-
-- Repository scaffold.
-- React/Vite frontend setup.
-- Hono/TypeScript backend setup with health endpoint.
-- Drizzle schema and migrations for the assignment data model.
-- README, planning docs, deployment checklist, and CI workflow.
-
-Next:
-
-- Clerk signup/login and role sync.
-- Protected REST API routes.
-- Role dashboards and real data flows.
-- Seed data and test accounts.
-- Vercel, Railway/Render, Neon, and Clerk production configuration.
-
-Skipped for now:
-
-- Pixel-perfect UI.
-- Enterprise-grade audit logging.
-- Paid AI API dependency.
+Deployment checklist: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## What I Would Improve With More Time
 
-I would add institution onboarding workflows, richer attendance anomaly detection, audit logs for all mutations, and Playwright end-to-end tests covering the complete deployed demo flow.
+- Add Playwright E2E tests for all five roles.
+- Add audit logs for every mutation.
+- Add institution/trainer invitation workflows.
+- Add production observability and error tracking.
+- Add optional LLM-generated insight summaries behind a feature flag.

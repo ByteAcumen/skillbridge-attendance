@@ -9,3 +9,5 @@ coverage
 .vscode
 .prisma
 generated
+.playwright-cli/
+*.log

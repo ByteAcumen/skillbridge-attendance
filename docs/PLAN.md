@@ -1,92 +1,93 @@
-# SkillBridge Attendance Build Plan
+# SkillBridge Build Plan
 
-## Assignment Interpretation
+## Assignment Goal
 
-The assignment values a working deployed prototype over a polished product. The implementation should prove five things clearly:
+Build a deployed end-to-end attendance prototype for five roles:
 
-- All five roles can sign up and log in.
-- Each role sees an appropriate dashboard.
-- Protected API routes verify the authenticated user and role server-side.
-- Data shown in the UI comes from the backend and PostgreSQL.
-- The README is clear enough for a teammate or reviewer to run and verify the system.
+- Student
+- Trainer
+- Institution
+- Programme Manager
+- Monitoring Officer
 
-## Stack
-
-| Layer | Tooling |
-| --- | --- |
-| Frontend | Vite, React, TypeScript, Tailwind CSS |
-| Backend | Hono, TypeScript, Zod, Drizzle ORM |
-| Database | Neon PostgreSQL |
-| Auth | Clerk |
-| Frontend hosting | Vercel |
-| Backend hosting | Railway first, Render fallback |
-| CI/CD | GitHub Actions |
+The evaluator should be able to log in, switch roles using test accounts, and see real API-backed data.
 
 ## MVP Scope
 
-### Must Have
+### Implemented
 
-- Clerk-based authentication with role selection.
-- Local `users` table linked to Clerk user IDs.
-- Server-side role authorization for every protected route.
-- Batch creation, trainer assignment, and student batch joining through invite links.
-- Session creation by trainers.
-- Attendance marking by enrolled students for active sessions.
-- Attendance summaries for trainers, institutions, programme managers, and monitoring officers.
-- Test accounts and seed data for the demo.
+- Clerk authentication.
+- Role onboarding and local user sync.
+- Server-side role checks on protected routes.
+- PostgreSQL schema for users, institutions, batches, trainers, students, sessions, attendance, and invites.
+- REST API for all required assignment endpoints.
+- Next.js dashboards for all five roles.
+- Monitoring Officer read-only experience.
+- Deterministic AI insights from attendance aggregates.
+- Seed data, Postman dev tokens, and Clerk test accounts.
+- Docker backend workflow.
+- GitHub Actions CI.
 
-### Nice To Have
+### Intentionally Simple
 
-- AI Insights card that turns attendance aggregates into short recommendations.
-- Optional LLM enhancement behind environment variables.
-- Basic end-to-end browser checks after deployment.
+- UI is professional and responsive, but not pixel-perfect.
+- Invites expose tokens directly instead of sending emails.
+- AI insights are deterministic so the app runs on free tiers.
+- No audit-log table yet.
 
-### Out Of Scope For The 2-3 Day Window
+## Architecture
 
-- Advanced reporting exports.
-- Complex institution approval workflows.
-- Fine-grained audit logs.
-- SMS or email invites.
-- Mobile app.
+```text
+Clerk Auth
+   |
+Next.js frontend
+   |
+Bearer token
+   |
+Hono API middleware
+   |
+Role guard
+   |
+Drizzle ORM
+   |
+PostgreSQL
+```
 
-## AI-First Enhancement
+## Role Rules
 
-The app will include an AI Insights card on summary dashboards. The default version will be deterministic and free:
+| Role | Access |
+| --- | --- |
+| Student | Active sessions, own attendance, batch join |
+| Trainer | Managed batches, session creation, invite links, attendance view/override |
+| Institution | Institution batches and summaries |
+| Programme Manager | Programme summary, institution summary, institution creation |
+| Monitoring Officer | Read-only programme and institution summaries |
 
-- Detect batches with low attendance.
-- Highlight late attendance trends.
-- Recommend follow-up actions.
-- Explain the signal in plain English.
+## AI-First Feature
 
-If an API key is available later, the backend can optionally polish the wording through an LLM. The feature must still work without paid AI services.
+The programme summary returns an `insights` object:
 
-## Suggested Timeline
+```json
+{
+  "programmeAverage": 82,
+  "recommendations": ["Review low-rate batches first."]
+}
+```
 
-### Day 1
+This behaves like an AI insights card while staying deterministic and free. With more time, this could be upgraded to optional LLM-generated text behind a feature flag.
 
-- Finalize schema and migrations.
-- Add Clerk auth and role sync.
-- Implement core protected API middleware.
-- Seed demo data.
+## Verification Strategy
 
-### Day 2
+- Unit tests for backend auth, roles, health, and time logic.
+- Manual API smoke tests using dev bearer tokens.
+- Browser smoke tests using Clerk test accounts.
+- Docker build and Docker Compose checks.
+- GitHub Actions for repeatable CI.
 
-- Implement all required endpoints.
-- Build role dashboards.
-- Add frontend API integration.
-- Add backend and frontend tests.
+## More Time Improvements
 
-### Day 3
-
-- Deploy frontend, backend, and database.
-- Create Clerk test accounts.
-- Run manual role-by-role demo.
-- Finish README with live URLs, accounts, status, and limitations.
-
-## Success Criteria
-
-- A reviewer can open the live frontend URL and log in as each role.
-- Wrong-role API calls return `403`.
-- Monitoring Officer has no mutation UI.
-- Student cannot access institution or programme summaries.
-- The README honestly describes what works and what is incomplete.
+- Playwright E2E suite for all five roles.
+- Audit logs for every write.
+- Better institution onboarding flows.
+- Email delivery for invite links.
+- Observability dashboards and production error monitoring.

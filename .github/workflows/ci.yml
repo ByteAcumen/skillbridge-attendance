@@ -1,10 +1,10 @@
-name: CI
+name: SkillBridge CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop, "feature/**", "codex/**"]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   frontend:
@@ -65,12 +65,12 @@ jobs:
         run: npm run typecheck
         working-directory: backend
 
-      - name: Test
+      - name: Unit tests
         run: npm test
         working-directory: backend
 
       - name: Audit dependencies
-        run: npm audit
+        run: npm audit --audit-level=high
         working-directory: backend
 
       - name: Build
@@ -80,3 +80,123 @@ jobs:
       - name: Build Docker image
         run: docker build -t skillbridge-api:ci .
         working-directory: backend
+
+  integration:
+    name: Backend Integration
+    runs-on: ubuntu-latest
+    needs: [backend]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: skillbridge_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: development
+      PORT: 4001
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/skillbridge_ci
+      CLERK_SECRET_KEY: sk_test_dummy_ci
+      CLERK_PUBLISHABLE_KEY: pk_test_dummy_ci
+      FRONTEND_URL: http://localhost:3000
+      PROGRAMME_TIME_ZONE: Asia/Kolkata
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Migrate database
+        run: npm run db:migrate
+        working-directory: backend
+
+      - name: Seed database
+        run: npm run db:seed
+        working-directory: backend
+
+      - name: Build API
+        run: npm run build
+        working-directory: backend
+
+      - name: Start API
+        run: |
+          npm start > api.log 2>&1 &
+          echo $! > api.pid
+        working-directory: backend
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:4001/health; then
+              exit 0
+            fi
+            echo "Waiting for API ($i/20)"
+            sleep 2
+          done
+          cat api.log
+          exit 1
+        working-directory: backend
+
+      - name: Smoke test required endpoints
+        run: |
+          set -euo pipefail
+
+          expect_code() {
+            METHOD="$1"
+            URL="$2"
+            EXPECTED="$3"
+            TOKEN="${4:-}"
+            BODY="${5:-}"
+
+            if [ -n "$TOKEN" ] && [ -n "$BODY" ]; then
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" -X "$METHOD" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "$BODY" "$URL")
+            elif [ -n "$TOKEN" ]; then
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" -X "$METHOD" -H "Authorization: Bearer $TOKEN" "$URL")
+            else
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" -X "$METHOD" "$URL")
+            fi
+
+            if [ "$CODE" != "$EXPECTED" ]; then
+              echo "Expected $EXPECTED, got $CODE for $METHOD $URL"
+              exit 1
+            fi
+          }
+
+          BASE=http://localhost:4001
+          expect_code GET "$BASE/health" 200
+          expect_code GET "$BASE/api/me" 401
+          expect_code GET "$BASE/api/me" 200 user_seed_student
+          expect_code GET "$BASE/api/sessions/active" 200 user_seed_student
+          expect_code POST "$BASE/api/attendance/mark" 201 user_seed_student '{"sessionId":"session_demo_active_react","status":"PRESENT"}'
+          expect_code POST "$BASE/api/attendance/mark" 409 user_seed_student '{"sessionId":"session_demo_active_react","status":"PRESENT"}'
+          expect_code GET "$BASE/api/programme/summary" 403 user_seed_student
+          expect_code GET "$BASE/api/batches" 200 user_seed_trainer
+          expect_code GET "$BASE/api/sessions/session_demo_active_react/attendance" 200 user_seed_trainer
+          expect_code GET "$BASE/api/programme/summary" 200 user_seed_manager
+          expect_code GET "$BASE/api/programme/summary" 200 user_seed_monitor
+
+      - name: Upload API log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-log
+          path: backend/api.log

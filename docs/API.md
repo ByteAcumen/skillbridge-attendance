@@ -1,4 +1,4 @@
-# API Plan
+# SkillBridge API Reference
 
 Base URL:
 
@@ -6,80 +6,145 @@ Base URL:
 http://localhost:4000
 ```
 
-Protected application routes are mounted under `/api`.
-
-Production API URL:
+Protected endpoints require:
 
 ```text
-TBD
+Authorization: Bearer <token>
 ```
 
-All protected endpoints will require a Clerk session token in the `Authorization` header:
+For Postman/local testing, use the development seed tokens:
 
-```text
-Authorization: Bearer <clerk-session-token>
-```
-
-## Role Names
-
-| UI label | API role |
+| Role | Token |
 | --- | --- |
-| Student | `STUDENT` |
-| Trainer | `TRAINER` |
-| Institution | `INSTITUTION` |
-| Programme Manager | `PROGRAMME_MANAGER` |
-| Monitoring Officer | `MONITORING_OFFICER` |
+| Student | `user_seed_student` |
+| Trainer | `user_seed_trainer` |
+| Institution | `user_seed_institution` |
+| Programme Manager | `user_seed_manager` |
+| Monitoring Officer | `user_seed_monitor` |
 
-## Support Endpoints
+## Public
 
-| Method | Path | Auth | Purpose |
-| --- | --- | --- | --- |
-| GET | `/health` | Public | Deployment health check. |
-| GET | `/` | Public | API metadata. |
-| GET | `/api/me` | Required | Return synced local user profile. |
-| POST | `/api/me/sync` | Required | Create or update local user from Clerk profile and selected role. |
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/` | API metadata |
+| GET | `/health` | Health check |
 
-## Required Assignment Endpoints
+## Auth/Profile
 
 | Method | Path | Roles | Purpose |
 | --- | --- | --- | --- |
-| POST | `/api/batches` | `TRAINER`, `INSTITUTION` | Create a batch. |
-| POST | `/api/batches/:id/invite` | `TRAINER` | Generate a one-time or reusable invite link. |
-| POST | `/api/batches/:id/join` | `STUDENT` | Join a batch using an invite token. |
-| POST | `/api/sessions` | `TRAINER` | Create a session for an assigned batch. |
-| POST | `/api/attendance/mark` | `STUDENT` | Mark own attendance for an active enrolled session. |
-| GET | `/api/sessions/:id/attendance` | `TRAINER` | View attendance for a trainer-owned session. |
-| GET | `/api/batches/:id/summary` | `INSTITUTION` | View attendance summary for a batch in the institution. |
-| GET | `/api/institutions/:id/summary` | `PROGRAMME_MANAGER` | View all batch summaries for an institution. |
-| GET | `/api/programme/summary` | `PROGRAMME_MANAGER`, `MONITORING_OFFICER` | View programme-wide attendance summary. |
+| GET | `/api/me` | Any synced user | Current local profile |
+| POST | `/api/me/sync` | Any Clerk user | Create/update local user after onboarding |
 
-## Authorization Rules
-
-- Missing or invalid token returns `401`.
-- Authenticated user with the wrong role returns `403`.
-- Trainers can only act on batches they are assigned to.
-- Students can only join batches through valid invite tokens.
-- Students can only mark attendance for sessions in their enrolled batches.
-- Institution users can only view data under their own institution.
-- Monitoring Officers are read-only across the programme.
-
-## Planned Response Style
-
-Success responses will return JSON objects with named fields:
+`POST /api/me/sync`
 
 ```json
 {
-  "data": {},
-  "message": "Operation completed"
+  "name": "Student Demo",
+  "email": "student+clerk_test@example.com",
+  "role": "STUDENT"
 }
 ```
 
-Validation errors will return:
+## Batches
+
+| Method | Path | Roles | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/batches` | Student, Trainer, Institution | Role-filtered batch list |
+| GET | `/api/batches/:id` | Trainer, Institution | Batch detail with trainers/students |
+| POST | `/api/batches` | Trainer, Institution | Create batch |
+| POST | `/api/batches/:id/invite` | Trainer | Generate invite token |
+| POST | `/api/batches/:id/join` | Student | Join batch using invite token |
+| GET | `/api/batches/:id/summary` | Institution | Per-student attendance summary |
+
+Create batch:
+
+```json
+{ "name": "Frontend Cohort 2" }
+```
+
+Create invite:
+
+```json
+{ "reusable": true, "maxUses": 30 }
+```
+
+Join batch:
+
+```json
+{ "token": "invite-token" }
+```
+
+## Sessions
+
+| Method | Path | Roles | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/sessions` | Trainer | Trainer sessions |
+| GET | `/api/sessions/active` | Student | Active enrolled sessions |
+| POST | `/api/sessions` | Trainer | Create session |
+| GET | `/api/sessions/:id` | Trainer | Session detail |
+| GET | `/api/sessions/:id/attendance` | Trainer | Attendance list |
+
+Create session:
 
 ```json
 {
-  "error": "ValidationError",
-  "message": "Readable error message",
-  "details": []
+  "batchId": "batch_demo_frontend_1",
+  "title": "React Fundamentals",
+  "date": "2026-04-22",
+  "startTime": "09:00",
+  "endTime": "10:30"
 }
 ```
+
+## Attendance
+
+| Method | Path | Roles | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/attendance/mark` | Student | Mark own attendance |
+| POST | `/api/attendance/override` | Trainer | Override attendance for owned session |
+
+Student mark:
+
+```json
+{ "sessionId": "session_demo_active_react", "status": "PRESENT" }
+```
+
+Trainer override:
+
+```json
+{
+  "sessionId": "session_demo_active_react",
+  "studentId": "user_demo_student",
+  "status": "LATE"
+}
+```
+
+## Institutions
+
+| Method | Path | Roles | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/institutions` | Programme Manager, Monitoring Officer | List institutions |
+| POST | `/api/institutions` | Programme Manager | Create institution |
+| GET | `/api/institutions/:id/summary` | Programme Manager, Monitoring Officer | Institution batch summaries |
+
+## Programme
+
+| Method | Path | Roles | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/programme/summary` | Programme Manager, Monitoring Officer | Programme-wide summary |
+| GET | `/api/programme/monitoring` | Monitoring Officer | Backward-compatible read-only summary |
+| GET | `/api/programme/manager-insights` | Programme Manager | Backward-compatible manager insights |
+
+## Status Codes
+
+| Code | Meaning |
+| --- | --- |
+| 200 | Success |
+| 201 | Created |
+| 400 | Invalid input or inactive attendance window |
+| 401 | Missing/invalid token or user not synced |
+| 403 | Authenticated but wrong role/scope |
+| 404 | Resource not found |
+| 409 | Duplicate attendance mark |
+| 413 | Request body too large |

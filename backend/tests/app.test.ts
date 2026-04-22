@@ -17,8 +17,7 @@ describe('app shell', () => {
 
     expect(response.status).toBe(200)
     expect(body).toMatchObject({
-      name: 'SkillBridge API',
-      framework: 'Hono',
+      name: 'SkillBridge Attendance API',
       status: 'running',
     })
   })
