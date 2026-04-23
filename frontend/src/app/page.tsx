@@ -22,51 +22,44 @@ function ProductPreview() {
   ]
 
   return (
-    <div
-      className="animate-fade-up animate-delay-2 rounded-lg border border-zinc-200 bg-white p-4 shadow-2xl shadow-emerald-950/10"
-      id="insights"
-    >
-      <div className="mb-4 flex items-center justify-between border-b border-zinc-100 pb-4">
-        <div>
-          <p className="text-sm font-semibold text-zinc-950">Programme summary</p>
-          <p className="text-xs text-zinc-500">Live attendance signal</p>
+      <div className="animate-fade-up animate-delay-2 rounded-2xl border border-zinc-200/60 bg-white/60 p-6 shadow-2xl shadow-emerald-950/10 backdrop-blur-xl" id="insights">
+        <div className="mb-6 flex items-center justify-between border-b border-zinc-100 pb-4">
+          <div>
+            <p className="text-base font-semibold text-zinc-950">Programme summary</p>
+            <p className="text-sm text-zinc-500">Live attendance signal</p>
+          </div>
+          <Badge tone="good">Active</Badge>
         </div>
-        <Badge tone="good">Active</Badge>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {[
-          ['Institutions', '12'],
-          ['Students', '1,248'],
-          ['Attendance', '88%'],
-        ].map(([label, value]) => (
-          <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4" key={label}>
-            <p className="text-xs font-medium text-zinc-500">{label}</p>
-            <p className="mt-2 text-2xl font-semibold text-zinc-950">{value}</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            ['Institutions', '12'],
+            ['Students', '1,248'],
+            ['Attendance', '88%'],
+          ].map(([label, value]) => (
+            <div className="rounded-xl border border-zinc-100/80 bg-white/50 p-5 shadow-sm transition-all hover:shadow-md" key={label}>
+              <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{label}</p>
+              <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">{value}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 overflow-hidden rounded-xl border border-zinc-100/80 bg-white/50">
+          {rows.map(([batch, rate, status]) => (
+            <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b border-zinc-100 px-5 py-4 text-sm last:border-b-0 transition-colors hover:bg-zinc-50/50" key={batch}>
+              <span className="font-medium text-zinc-800">{batch}</span>
+              <span className="font-mono text-zinc-500">{rate}</span>
+              <Badge tone={status === 'Watch' ? 'warn' : 'good'}>{status}</Badge>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-5 shadow-inner">
+          <div className="relative flex items-start gap-4">
+            <Sparkles className="mt-0.5 h-5 w-5 text-emerald-600 animate-pulse" />
+            <p className="text-sm leading-6 text-emerald-900 font-medium">
+              <span className="font-bold">AI Insight:</span> Data Skills Batch needs follow-up this week. Two students missed the last active session.
+            </p>
           </div>
-        ))}
-      </div>
-      <div className="mt-4 overflow-hidden rounded-lg border border-zinc-100">
-        {rows.map(([batch, rate, status]) => (
-          <div
-            className="grid grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-zinc-100 px-4 py-3 text-sm last:border-b-0"
-            key={batch}
-          >
-            <span className="font-medium text-zinc-800">{batch}</span>
-            <span className="text-zinc-500">{rate}</span>
-            <Badge tone={status === 'Watch' ? 'warn' : 'good'}>{status}</Badge>
-          </div>
-        ))}
-      </div>
-      <div className="motion-sheen mt-4 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
-        <div className="relative flex items-start gap-3">
-          <Sparkles className="mt-0.5 h-5 w-5 text-emerald-700" />
-          <p className="text-sm leading-6 text-emerald-900">
-            Data Skills Batch needs follow-up this week. Two students missed the
-            last active session.
-          </p>
         </div>
       </div>
-    </div>
   )
 }
 

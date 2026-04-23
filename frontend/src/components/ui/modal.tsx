@@ -45,12 +45,12 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       className="backdrop:bg-zinc-950/40 backdrop:backdrop-blur-sm bg-transparent p-0 open:animate-in open:fade-in-0 open:zoom-in-95"
     >
       <div className="fixed inset-0 grid place-items-center p-4">
-        <div className="w-full max-w-md rounded-xl bg-white shadow-2xl shadow-zinc-950/20 ring-1 ring-zinc-950/5">
+        <div className="w-full max-w-md rounded-2xl border border-zinc-200/60 bg-white/95 backdrop-blur-xl shadow-2xl shadow-zinc-950/10 ring-1 ring-zinc-950/5">
           <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
             <h2 className="text-lg font-semibold text-zinc-950">{title}</h2>
             <button
               onClick={onClose}
-              className="rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition"
+              className="rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all active:scale-95"
               aria-label="Close modal"
             >
               <X className="h-4 w-4" />

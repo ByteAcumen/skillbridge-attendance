@@ -232,9 +232,22 @@ export function TrainerDashboard({ user }: RolePanelProps) {
               </Button>
             </form>
             {latestInvite ? (
-              <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-sm font-semibold text-emerald-950">Invite token</p>
-                <p className="mt-2 break-all font-mono text-sm text-emerald-900">{latestInvite.token}</p>
+              <div className="mt-5 space-y-3 rounded-lg border border-emerald-200 bg-emerald-50/80 p-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-900">Batch ID</p>
+                  <p className="mt-1 break-all font-mono text-sm text-emerald-800 bg-emerald-100/50 p-2 rounded border border-emerald-200/50 select-all">
+                    {inviteBatchId}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-900">Invite Token</p>
+                  <p className="mt-1 break-all font-mono text-sm text-emerald-800 bg-emerald-100/50 p-2 rounded border border-emerald-200/50 select-all">
+                    {latestInvite.token}
+                  </p>
+                </div>
+                <p className="text-xs text-emerald-700 mt-2">
+                  Share both the Batch ID and the Token with your students.
+                </p>
               </div>
             ) : null}
           </Card>
