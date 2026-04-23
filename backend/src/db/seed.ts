@@ -5,19 +5,6 @@ import * as schema from './schema.js'
 async function seed() {
   console.log('Starting database seed...')
 
-  // ── Wipe all tables in dependency order (CASCADE handles the rest) ──────────
-  console.log('  Clearing existing data...')
-  await db.execute(sql`TRUNCATE TABLE
-    attendance,
-    batch_invites,
-    sessions,
-    batch_students,
-    batch_trainers,
-    batches,
-    users,
-    institutions
-  RESTART IDENTITY CASCADE`)
-
   // ── Institution ─────────────────────────────────────────────────────────────
   const [institution] = await db
     .insert(schema.institutions)
@@ -26,10 +13,14 @@ async function seed() {
       name: 'State Polytechnic Institute',
       region: 'North',
     })
+    .onConflictDoUpdate({
+      target: schema.institutions.id,
+      set: { name: 'State Polytechnic Institute', region: 'North' },
+    })
     .returning()
 
   // ── Users ───────────────────────────────────────────────────────────────────
-  await db.insert(schema.users).values([
+  const usersToSeed = [
     {
       id: 'user_demo_student',
       clerkUserId: 'user_seed_student',
@@ -70,7 +61,17 @@ async function seed() {
       role: 'MONITORING_OFFICER' as const,
       institutionId: null,
     },
-  ])
+  ]
+
+  for (const user of usersToSeed) {
+    await db
+      .insert(schema.users)
+      .values(user)
+      .onConflictDoUpdate({
+        target: schema.users.id,
+        set: user,
+      })
+  }
 
   // ── Batch ────────────────────────────────────────────────────────────────────
   const [batch] = await db
@@ -80,17 +81,21 @@ async function seed() {
       name: 'Frontend Engineering Cohort 1',
       institutionId: institution.id,
     })
+    .onConflictDoUpdate({
+      target: schema.batches.id,
+      set: { name: 'Frontend Engineering Cohort 1', institutionId: institution.id },
+    })
     .returning()
 
   await db.insert(schema.batchTrainers).values({
     batchId: batch.id,
     trainerId: 'user_demo_trainer',
-  })
+  }).onConflictDoNothing()
 
   await db.insert(schema.batchStudents).values({
     batchId: batch.id,
     studentId: 'user_demo_student',
-  })
+  }).onConflictDoNothing()
 
   // ── Demo session active all day today ────────────────────────────────────────
   const todayDate = new Date().toISOString().split('T')[0]
@@ -103,6 +108,16 @@ async function seed() {
     date: todayDate,
     startTime: '00:00',
     endTime: '23:59',
+  }).onConflictDoUpdate({
+    target: schema.sessions.id,
+    set: {
+      batchId: batch.id,
+      trainerId: 'user_demo_trainer',
+      title: 'Intro to React',
+      date: todayDate,
+      startTime: '00:00',
+      endTime: '23:59',
+    }
   })
 
   console.log('✅ Seed complete.')

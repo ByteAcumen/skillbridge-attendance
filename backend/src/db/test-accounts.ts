@@ -15,7 +15,7 @@ const completedSessionId = 'session_test_completed_accounts'
 const accounts = [
   {
     id: 'user_demo_student',
-    email: 'student.skillbridge2026@gmail.com',
+    email: 'student+clerk_test@skillbridge.dev',
     firstName: 'Student',
     lastName: 'Demo',
     role: 'STUDENT' as const,
@@ -23,7 +23,7 @@ const accounts = [
   },
   {
     id: 'user_demo_trainer',
-    email: 'trainer.skillbridge2026@gmail.com',
+    email: 'trainer+clerk_test@skillbridge.dev',
     firstName: 'Trainer',
     lastName: 'Demo',
     role: 'TRAINER' as const,
@@ -31,7 +31,7 @@ const accounts = [
   },
   {
     id: 'user_demo_institution',
-    email: 'institution.skillbridge2026@gmail.com',
+    email: 'institution+clerk_test@skillbridge.dev',
     firstName: 'Institution',
     lastName: 'Demo',
     role: 'INSTITUTION' as const,
@@ -39,7 +39,7 @@ const accounts = [
   },
   {
     id: 'user_demo_manager',
-    email: 'manager.skillbridge2026@gmail.com',
+    email: 'manager+clerk_test@skillbridge.dev',
     firstName: 'Programme',
     lastName: 'Manager',
     role: 'PROGRAMME_MANAGER' as const,
@@ -47,7 +47,7 @@ const accounts = [
   },
   {
     id: 'user_demo_monitor',
-    email: 'monitor.skillbridge2026@gmail.com',
+    email: 'monitor+clerk_test@skillbridge.dev',
     firstName: 'Monitoring',
     lastName: 'Officer',
     role: 'MONITORING_OFFICER' as const,
@@ -61,6 +61,11 @@ const legacyEmails = [
   'institution+clerk_test@example.com',
   'manager+clerk_test@example.com',
   'monitor+clerk_test@example.com',
+  'student.skillbridge2026@gmail.com',
+  'trainer.skillbridge2026@gmail.com',
+  'institution.skillbridge2026@gmail.com',
+  'manager.skillbridge2026@gmail.com',
+  'monitor.skillbridge2026@gmail.com',
 ]
 
 async function upsertClerkUser(account: (typeof accounts)[number]) {
