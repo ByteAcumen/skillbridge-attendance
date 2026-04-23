@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   BarChart3,
   CheckCircle2,
   Clock3,
@@ -8,9 +7,10 @@ import {
   Sparkles,
   UsersRound,
 } from 'lucide-react'
-import Link from 'next/link'
+import { HomeActions } from '@/components/site/home-actions'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/status'
+import { redirectSignedInUser } from '@/lib/auth-redirect'
 import { roleOptions } from '@/lib/roles'
 
 function ProductPreview() {
@@ -69,7 +69,9 @@ function ProductPreview() {
   )
 }
 
-export default function Home() {
+export default async function Home() {
+  await redirectSignedInUser()
+
   return (
     <main>
       <section className="mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:px-8">
@@ -83,21 +85,7 @@ export default function Home() {
             track batches, and programme teams monitor the whole system through
             real API-backed dashboards.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition hover:bg-emerald-700"
-              href="/sign-up"
-            >
-              Create account
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
-              href="/sign-in"
-            >
-              Sign in
-            </Link>
-          </div>
+          <HomeActions />
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
             {[
               { label: 'Server checked roles', Icon: ShieldCheck },

@@ -21,7 +21,7 @@ function LoadingWorkspace() {
     <main className="grid min-h-[calc(100svh-4rem)] place-items-center px-4">
       <Card className="grid min-h-52 w-full max-w-md place-items-center text-center">
         <Loader2 className="h-7 w-7 animate-spin text-emerald-700" />
-        <p className="text-sm font-medium text-zinc-600">Loading workspace…</p>
+        <p className="text-sm font-medium text-zinc-600">Loading workspace...</p>
       </Card>
     </main>
   )
@@ -34,14 +34,14 @@ export function DashboardRouter() {
     isLoaded && isSignedIn ? '/api/me' : null,
   )
 
-  // Not signed in → middleware handles redirect, but belt-and-suspenders
+  // Middleware handles this first; the client redirect covers client transitions.
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       router.replace('/sign-in')
     }
   }, [isLoaded, isSignedIn, router])
 
-  // Profile fetch failed or user not synced → go to onboarding automatically
+  // Unsynced Clerk users must choose a SkillBridge role before dashboard access.
   useEffect(() => {
     if (!profile.isLoading && (profile.error || (profile.data && !profile.data.user))) {
       router.replace('/onboarding')

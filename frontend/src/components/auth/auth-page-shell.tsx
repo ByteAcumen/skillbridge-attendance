@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SignedInRedirect } from '@/components/auth/signed-in-redirect'
 import { Badge } from '@/components/ui/status'
 
 export function AuthPageShell({
@@ -12,6 +13,7 @@ export function AuthPageShell({
 }) {
   return (
     <main className="mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8">
+      <SignedInRedirect />
       <section className="animate-fade-up">
         <Badge tone="info">{eyebrow}</Badge>
         <h1 className="mt-5 max-w-xl text-4xl font-semibold tracking-normal text-zinc-950 sm:text-5xl">

@@ -25,7 +25,7 @@ export function DashboardShell({
             </h1>
             <p className="mt-3 text-sm text-zinc-600">
               {user.name}
-              {user.institution?.name ? ` · ${user.institution.name}` : ''}
+              {user.institution?.name ? ` - ${user.institution.name}` : ''}
             </p>
           </div>
           {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}

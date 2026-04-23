@@ -229,7 +229,7 @@ export function StudentDashboard({ user }: RolePanelProps) {
                   <div>
                     <p className="font-semibold text-zinc-950">{session.title}</p>
                     <p className="mt-1 text-sm text-zinc-600">
-                      {session.batch_name} · {session.start_time} to {session.end_time}
+                      {session.batch_name} - {session.start_time} to {session.end_time}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -319,7 +319,7 @@ export function TrainerDashboard({ user }: RolePanelProps) {
       { value: '', label: 'Select session' },
       ...(sessions.data?.sessions.map((session) => ({
         value: session.id,
-        label: `${session.title} · ${session.batch?.name ?? session.batchId}`,
+        label: `${session.title} - ${session.batch?.name ?? session.batchId}`,
       })) ?? []),
     ],
     [sessions.data],

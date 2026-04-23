@@ -1,11 +1,15 @@
 import { SignUp } from '@clerk/nextjs'
 import { AuthPageShell } from '@/components/auth/auth-page-shell'
+import { redirectSignedInUser } from '@/lib/auth-redirect'
 
-export default function SignUpPage() {
+export default async function SignUpPage() {
+  await redirectSignedInUser()
+
   return (
     <AuthPageShell eyebrow="Create account" title="Start with identity, then choose a role.">
       <SignUp
         fallbackRedirectUrl="/onboarding"
+        forceRedirectUrl="/onboarding"
         routing="path"
         path="/sign-up"
         signInUrl="/sign-in"

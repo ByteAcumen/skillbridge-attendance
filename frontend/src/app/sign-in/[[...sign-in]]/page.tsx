@@ -1,11 +1,15 @@
 import { SignIn } from '@clerk/nextjs'
 import { AuthPageShell } from '@/components/auth/auth-page-shell'
+import { redirectSignedInUser } from '@/lib/auth-redirect'
 
-export default function SignInPage() {
+export default async function SignInPage() {
+  await redirectSignedInUser()
+
   return (
     <AuthPageShell eyebrow="Welcome back" title="Open your SkillBridge workspace.">
       <SignIn
         fallbackRedirectUrl="/dashboard"
+        forceRedirectUrl="/dashboard"
         routing="path"
         path="/sign-in"
         signUpUrl="/sign-up"
