@@ -11,6 +11,7 @@ Hono + TypeScript REST API for the SkillBridge Attendance assignment.
 - Exposes assignment-required REST endpoints under `/api`.
 - Provides deterministic attendance insights without requiring paid AI API credentials.
 - Runs locally with Docker Compose or against Neon PostgreSQL.
+- Can create five deployed reviewer accounts with `npm run accounts:seed` or `SEED_DEMO_DATA=true`.
 
 ## Commands
 
@@ -21,6 +22,7 @@ npm test
 npm run build
 npm audit
 npm run dev
+npm run accounts:seed
 ```
 
 ## Local Docker Database
@@ -39,6 +41,7 @@ $env:CLERK_SECRET_KEY="sk_test_dummy_key_for_seed"
 $env:CLERK_PUBLISHABLE_KEY="pk_test_dummy_key_for_seed"
 $env:FRONTEND_URL="http://localhost:3000"
 npm run db:seed
+npm run accounts:seed
 ```
 
 Check health:
@@ -75,6 +78,18 @@ await window.Clerk.session.getToken()
 5. In Postman, set `Authorization` type to `Bearer Token`, then paste the token.
 
 If the token is valid but `/api/me` returns `User not synced with database`, call `POST /api/me/sync` first.
+
+Local-only shortcut tokens are accepted only when `NODE_ENV` is not `production`:
+
+```text
+user_seed_student
+user_seed_trainer
+user_seed_institution
+user_seed_manager
+user_seed_monitor
+```
+
+Do not use these against Railway; production requires a real Clerk JWT.
 
 ## Core API
 

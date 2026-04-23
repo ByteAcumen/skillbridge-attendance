@@ -19,7 +19,9 @@ Protected endpoints require:
 Authorization: Bearer <token>
 ```
 
-For Postman/local testing, use the development seed tokens:
+Production/deployed testing requires a real Clerk session JWT. Sign in on the frontend, open browser DevTools, copy the `Authorization` header from an API request, and paste it into Postman.
+
+For local testing only (`NODE_ENV=development` or `test`), use the development seed tokens:
 
 | Role | Token |
 | --- | --- |
@@ -48,7 +50,7 @@ For Postman/local testing, use the development seed tokens:
 ```json
 {
   "name": "Student Demo",
-  "email": "student+clerk_test@example.com",
+  "email": "student.skillbridge2026@gmail.com",
   "role": "STUDENT"
 }
 ```
@@ -84,6 +86,12 @@ Join batch:
 { "token": "invite-token" }
 ```
 
+Seeded demo invite token:
+
+```json
+{ "token": "skillbridge-demo" }
+```
+
 ## Sessions
 
 | Method | Path | Roles | Purpose |
@@ -98,9 +106,9 @@ Create session:
 
 ```json
 {
-  "batchId": "batch_demo_frontend_1",
+  "batchId": "batch_test_frontend_accounts",
   "title": "React Fundamentals",
-  "date": "2026-04-22",
+  "date": "2026-04-23",
   "startTime": "09:00",
   "endTime": "10:30"
 }
@@ -116,7 +124,7 @@ Create session:
 Student mark:
 
 ```json
-{ "sessionId": "session_demo_active_react", "status": "PRESENT" }
+{ "sessionId": "session_test_active_accounts", "status": "PRESENT" }
 ```
 
 Trainer override:

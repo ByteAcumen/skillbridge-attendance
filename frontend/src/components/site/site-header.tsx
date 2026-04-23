@@ -24,6 +24,9 @@ export function SiteHeader() {
             <Link className="transition hover:text-zinc-950" href="/#roles">
               Roles
             </Link>
+            <Link className="transition hover:text-zinc-950" href="/#test-accounts">
+              Test accounts
+            </Link>
             <Link className="transition hover:text-zinc-950" href="/#workflow">
               Workflow
             </Link>

@@ -25,6 +25,8 @@ The evaluator should be able to log in, switch roles using test accounts, and se
 - Monitoring Officer read-only experience.
 - Deterministic AI insights from attendance aggregates.
 - Seed data, Postman dev tokens, and Clerk test accounts.
+- Role-specific sign-in/sign-up URLs for all five roles.
+- Railway/Docker demo bootstrap through `SEED_DEMO_DATA=true`.
 - Docker backend workflow.
 - GitHub Actions CI.
 
@@ -79,8 +81,8 @@ This behaves like an AI insights card while staying deterministic and free. With
 ## Verification Strategy
 
 - Unit tests for backend auth, roles, health, and time logic.
-- Manual API smoke tests using dev bearer tokens.
-- Browser smoke tests using Clerk test accounts.
+- Manual API smoke tests using local dev bearer tokens.
+- Browser smoke tests using Clerk demo test accounts.
 - Docker build and Docker Compose checks.
 - GitHub Actions for repeatable CI.
 

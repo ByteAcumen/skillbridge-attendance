@@ -1,8 +1,6 @@
 # SkillBridge Attendance
 
-Full-stack attendance management prototype for a fictional state-level skilling programme. Five roles — Student, Trainer, Institution, Programme Manager, Monitoring Officer — each sign in with Clerk and see a focused dashboard backed by a real REST API and PostgreSQL data.
-
----
+Full-stack attendance management prototype for a fictional state-level skilling programme. Students, Trainers, Institutions, Programme Managers, and Monitoring Officers sign in with Clerk, land in role-specific dashboards, and work with real API-backed PostgreSQL data.
 
 ## 1. Live URLs
 
@@ -13,174 +11,210 @@ Full-stack attendance management prototype for a fictional state-level skilling 
 | API base URL | https://skillbridge-attendance-production.up.railway.app |
 | Health check | https://skillbridge-attendance-production.up.railway.app/health |
 
----
-
 ## 2. Test Accounts
 
-All accounts use the same password: `SkillBridge@2026!`
+All reviewer accounts use:
 
-| Role | Email |
-| --- | --- |
-| Student | student.skillbridge2026@gmail.com |
-| Trainer | trainer.skillbridge2026@gmail.com |
-| Institution | institution.skillbridge2026@gmail.com |
-| Programme Manager | manager.skillbridge2026@gmail.com |
-| Monitoring Officer | monitor.skillbridge2026@gmail.com |
-
-**Sign-in flow:**
-1. Go to https://skillbridge-attendance.vercel.app/sign-in
-2. Enter the email and password above
-3. You will land directly on that role's live dashboard
-
-**API testing via Postman (dev backdoor tokens):**
-
-| Token | Role |
-| --- | --- |
-| `user_seed_student` | Student |
-| `user_seed_trainer` | Trainer |
-| `user_seed_institution` | Institution |
-| `user_seed_manager` | Programme Manager |
-| `user_seed_monitor` | Monitoring Officer |
-
-Example:
-```
-GET https://skillbridge-attendance-production.up.railway.app/api/sessions/active
-Authorization: Bearer user_seed_student
+```text
+Password: SkillBridge@2026!
+Verification code if Clerk asks: 424242
 ```
 
----
+| Role | Direct sign-in | Email | Seeded data |
+| --- | --- | --- | --- |
+| Student | `/sign-in?role=student` | `student.skillbridge2026@gmail.com` | Enrolled in the demo cohort with one active session |
+| Trainer | `/sign-in?role=trainer` | `trainer.skillbridge2026@gmail.com` | Manages the demo cohort and can create sessions/invites |
+| Institution | `/sign-in?role=institution` | `institution.skillbridge2026@gmail.com` | Scoped to State Polytechnic Institute |
+| Programme Manager | `/sign-in?role=programme-manager` | `manager.skillbridge2026@gmail.com` | Can view programme and institution summaries |
+| Monitoring Officer | `/sign-in?role=monitoring-officer` | `monitor.skillbridge2026@gmail.com` | Read-only programme and institution oversight |
+
+Recommended review flow:
+
+1. Open https://skillbridge-attendance.vercel.app
+2. Scroll to "Reviewer access" or go directly to one of the role URLs above.
+3. Sign in with the matching email and shared password.
+4. Verify that each role sees only its own actions and data.
 
 ## 3. Local Setup
 
-**Prerequisites:** Node.js 20+, Docker
+Prerequisites:
 
-**Install dependencies:**
+- Node.js 20+
+- Docker Desktop
+- Clerk dev/test keys
+
+Install dependencies:
+
 ```bash
 npm install --prefix frontend
 npm install --prefix backend
 ```
 
-**Create environment files:**
+Create environment files:
+
 ```bash
 cp frontend/.env.example frontend/.env.local
 cp backend/.env.example backend/.env
 ```
 
-**Fill in `frontend/.env.local`:**
-```
+Frontend env:
+
+```text
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/onboarding
 ```
 
-**Fill in `backend/.env`:**
-```
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/skillbridge
-CLERK_SECRET_KEY=sk_test_...
-FRONTEND_URL=http://localhost:3000
+Backend env:
+
+```text
 NODE_ENV=development
 PORT=4000
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/skillbridge
+CLERK_SECRET_KEY=sk_test_...
+CLERK_PUBLISHABLE_KEY=pk_test_...
+FRONTEND_URL=http://localhost:3000
+PROGRAMME_TIME_ZONE=Asia/Kolkata
+SEED_DEMO_DATA=false
+TEST_ACCOUNT_PASSWORD=SkillBridge@2026!
 ```
 
-**Start local Postgres:**
+Start Postgres and seed local data:
+
 ```bash
 docker compose -f backend/docker-compose.yml up -d
-```
-
-**Run migrations and seed data:**
-```bash
 cd backend
 npm run db:migrate
 npm run db:seed
 npm run accounts:seed
 ```
 
-**Run backend:**
+Run the apps:
+
 ```bash
 cd backend
 npm run dev
 ```
 
-**Run frontend (separate terminal):**
 ```bash
 cd frontend
 npm run dev
 ```
 
-Frontend: http://localhost:3000 | Backend: http://localhost:4000
+Frontend: http://localhost:3000
 
----
+Backend: http://localhost:4000
 
-## 4. Schema Decisions
+## 4. API Auth And Postman
 
-**`users`** stores a `clerk_user_id` (the Clerk JWT subject) alongside our own `id`, `role`, and an optional `institution_id`. The role lives in the database so the backend can enforce it with a single lookup on every request — no extra Clerk API call required.
+Protected endpoints require:
 
-**`institutions`** is a first-class table so trainers and students are scoped to an institution without adding extra columns to `users`. `institution_id` on `users` is nullable so Programme Managers and Monitoring Officers, who span all institutions, do not need a dummy value.
+```text
+Authorization: Bearer <Clerk session JWT>
+```
 
-**`batch_trainers` and `batch_students`** are explicit join tables (many-to-many). A batch can have multiple trainers and a student can be in multiple batches. This keeps the core tables clean and avoids JSON arrays in columns.
+For deployed Railway API testing, sign in on the frontend, open browser DevTools, and copy the `Authorization` header from any API request to Postman. Production does not accept fake seed tokens.
 
-**`invites`** has a `token` (UUID), `reusable` boolean, `max_uses`, `uses_count`, and optional `expires_at`. This lets a trainer generate a single link for a whole cohort (`reusable: true`) or a one-time link for an individual student.
+For local development only (`NODE_ENV=development` or `test`), `npm run db:seed` creates dev backdoor tokens:
 
-**`sessions`** stores `date`, `start_time`, and `end_time` as plain strings (`YYYY-MM-DD` and `HH:MM`). The configured `PROGRAMME_TIME_ZONE` env var is applied server-side when checking whether a session is currently active for a student, avoiding timezone arithmetic in SQL.
+| Role | Local token |
+| --- | --- |
+| Student | `user_seed_student` |
+| Trainer | `user_seed_trainer` |
+| Institution | `user_seed_institution` |
+| Programme Manager | `user_seed_manager` |
+| Monitoring Officer | `user_seed_monitor` |
 
-**`attendance`** has a unique constraint on `(session_id, student_id)`. The mark-attendance route uses `ON CONFLICT DO UPDATE` so a student can correct a wrong status without a separate PATCH endpoint.
+Example local Postman request:
 
----
+```text
+GET http://localhost:4000/api/sessions/active
+Authorization: Bearer user_seed_student
+```
 
-## 5. Stack Choices
+Full endpoint reference: [docs/API.md](docs/API.md)
+
+## 5. Schema Decisions
+
+`users` stores Clerk's user id in `clerk_user_id`, plus the application role and optional `institution_id`. The backend looks up this row on every protected request, so authorization is enforced server-side instead of trusting the frontend.
+
+`institutions` is a real table because batches, trainers, and institution users need a shared scope. Trainers and Institution users created through the prototype onboarding are linked to the demo institution so their dashboards work immediately.
+
+`batch_trainers` and `batch_students` are join tables. This supports multiple trainers per batch and multiple batches per student without storing arrays in a single column.
+
+`sessions` stores `date`, `start_time`, and `end_time` as simple programme-local values. The backend uses `PROGRAMME_TIME_ZONE` to decide whether a student can mark attendance for an active session.
+
+`attendance` has a unique `(session_id, student_id)` constraint. Marking attendance upserts the row, which prevents double-counting and lets a student correct a mark during the live session window.
+
+`batch_invites` stores reusable tokens for trainer-generated student onboarding links. The demo token is `skillbridge-demo`.
+
+## 6. Stack Choices
 
 | Layer | Choice | Why |
 | --- | --- | --- |
-| Frontend | Next.js 16 App Router + React 19 | Vercel-native, built-in routing, clean Clerk middleware integration |
-| Styling | Tailwind CSS v4 + Lucide icons | Zero runtime CSS, utility classes co-located with components |
-| Auth | Clerk | Hosted sign-up/sign-in, JWT issuance, email verification, test-mode support |
-| Backend | Hono + TypeScript | Lightweight, typed, middleware-first REST framework |
-| ORM | Drizzle + drizzle-kit | Fully typed SQL queries, plain SQL migrations easy to inspect and version |
-| Database | Neon (hosted PostgreSQL) | Free tier, HTTP-compatible driver, matches assignment recommendation |
-| Deployment | Vercel (frontend) + Railway (backend) | Free tier, automatic GitHub deploys, env var management via dashboards |
-| CI | GitHub Actions | Type-check, lint, unit tests, Docker build, and integration smoke test on every push |
-| Validation | Zod | Single source of truth for request body shapes on both frontend and backend |
+| Frontend | Next.js 16 App Router + React 19 | Vercel-native routing, Clerk App Router support, fast deployment |
+| UI | Tailwind CSS v4 + Lucide icons | Clean reusable components with no extra UI runtime |
+| Auth | Clerk | Hosted sign-in/sign-up, test mode, session JWTs |
+| Backend | Hono + TypeScript | Small, fast REST API with typed middleware |
+| ORM | Drizzle ORM | Typed SQL schema and readable migrations |
+| Database | Neon PostgreSQL | Free-tier hosted Postgres, matches assignment recommendation |
+| Deployment | Vercel + Railway | Frontend on Vercel, Dockerized API on Railway |
+| CI/CD | GitHub Actions | Lint/typecheck/test/build/Docker verification on push |
+| Validation | Zod | Request validation at API boundaries |
 
----
+## 7. Deployment Notes
 
-## 6. What Is Working
+Frontend is deployed from `frontend/` on Vercel.
 
-- Clerk sign-up and sign-in for all five roles
-- Onboarding screen — user picks a role, backend syncs the user record
-- Server-side JWT verification and role enforcement on every protected endpoint (403 on wrong role)
-- **Student:** views active sessions, marks attendance
-- **Trainer:** creates sessions, views session attendance, generates and shares batch invite links
-- **Institution:** views all batches and attendance summary per batch
-- **Programme Manager:** programme-wide summary across all institutions with deterministic insights
-- **Monitoring Officer:** read-only analytics dashboard — no create/edit/delete controls anywhere in the UI
-- Invite link flow: Trainer generates token → Student joins batch via link
-- GitHub Actions CI (typecheck, lint, tests, Docker build, smoke test)
-- Railway deployment with Dockerfile and `/health` healthcheck
-- Vercel deployment with automatic redeploys on push to `main`
+Backend is deployed from `backend/` on Railway with the Dockerfile builder. `backend/railway.json` points Railway to `./Dockerfile`, starts `node dist/index.js`, and health-checks `/health`.
 
----
+To bootstrap demo accounts on Railway, add this backend environment variable before a redeploy:
 
-## 7. What I Would Do Differently With More Time
+```text
+SEED_DEMO_DATA=true
+```
 
-Replace the manual `POST /api/me/sync` onboarding step with a **Clerk webhook** (`user.created` event). Currently the user must complete the onboarding form before any protected route works. With a webhook, the backend creates the user row the moment Clerk confirms sign-up — the onboarding screen becomes purely a role-selection UI, and the "User not synced" error path disappears entirely. It is the cleanest fix for the most friction-heavy part of the current flow.
+That runs `node dist/db/test-accounts.js` before the server starts. After the first successful seed, you may set it back to `false` if you want reviewer actions to persist instead of being refreshed on every deploy.
 
----
+Deployment guide: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+## 8. What Is Working
+
+- Clerk sign-up and sign-in for all five roles.
+- Role-specific sign-in/sign-up URLs with seeded demo credentials.
+- Onboarding screen that syncs Clerk users into the backend database.
+- Server-side JWT verification and role checks on protected API routes.
+- Student active sessions, batch join, and attendance marking.
+- Trainer batch creation, session creation, invite generation, and attendance review.
+- Institution batch and attendance summaries.
+- Programme Manager programme/institution summaries and deterministic insight card.
+- Monitoring Officer read-only dashboard with no create/edit/delete actions.
+- Dockerized backend, Railway health checks, and GitHub Actions CI.
+
+## 9. Partial Or Skipped
+
+- Clerk user creation is synced by the onboarding form, not by a Clerk webhook yet.
+- AI insights are deterministic and free-tier safe, not LLM-generated text.
+- Invite links expose tokens in the UI instead of sending emails.
+- No audit log table yet.
+- No Playwright end-to-end suite yet; backend tests and manual role smoke tests are used.
+
+## 10. What I Would Improve With More Time
+
+I would add a Clerk `user.created` webhook so the backend user row is created immediately after sign-up. That would remove the only fragile onboarding step and make role setup feel instant.
 
 ## Project Structure
 
-```
+```text
 skillbridge-attendance/
   frontend/           Next.js App Router frontend
   backend/            Hono + Drizzle REST API
-  docs/               API reference, deployment notes, schema plan
+  docs/               API reference, deployment notes, plan
   .github/workflows/  CI and CD pipelines
   CONTACT.txt
   README.md
 ```
-
-Full API reference: [docs/API.md](docs/API.md)  
-Deployment checklist: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)

@@ -15,7 +15,7 @@ import { Hono } from 'hono'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db/client.js'
-import { users } from '../db/schema.js'
+import { institutions, users } from '../db/schema.js'
 import { requireAuth } from '../middleware/auth.js'
 import { AuthError, resolveClerkUserId } from '../lib/clerk.js'
 import { badRequest, unauthorized } from '../lib/errors.js'
@@ -46,6 +46,29 @@ const SyncSchema = z.object({
     { errorMap: () => ({ message: 'Invalid role' }) },
   ),
 })
+
+async function ensureDemoInstitution() {
+  await db
+    .insert(institutions)
+    .values({
+      id: 'inst_demo_state_polytechnic',
+      name: 'State Polytechnic Institute',
+      region: 'North',
+    })
+    .onConflictDoUpdate({
+      target: institutions.id,
+      set: {
+        name: 'State Polytechnic Institute',
+        region: 'North',
+      },
+    })
+}
+
+function defaultInstitutionForRole(role: z.infer<typeof SyncSchema>['role']) {
+  return role === 'TRAINER' || role === 'INSTITUTION'
+    ? 'inst_demo_state_polytechnic'
+    : null
+}
 
 /**
  * POST /api/me/sync
@@ -82,13 +105,18 @@ meRouter.post('/sync', async (c) => {
   }
 
   const { name, email, role } = parsed.data
+  const institutionId = defaultInstitutionForRole(role)
+
+  if (institutionId) {
+    await ensureDemoInstitution()
+  }
 
   const [syncedUser] = await db
     .insert(users)
-    .values({ clerkUserId, name, email, role })
+    .values({ clerkUserId, name, email, role, institutionId })
     .onConflictDoUpdate({
       target: users.clerkUserId,
-      set: { name, email, role },
+      set: { name, email, role, institutionId },
     })
     .returning()
 

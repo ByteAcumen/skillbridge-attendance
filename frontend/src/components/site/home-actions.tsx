@@ -15,8 +15,8 @@ export function HomeActions() {
   return (
     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
       <Show when="signed-out">
-        <Link className={primary} href="/sign-up">
-          Create account
+        <Link className={primary} href="/#test-accounts">
+          Choose role
           <ArrowRight className="h-4 w-4" />
         </Link>
         <Link className={secondary} href="/sign-in">

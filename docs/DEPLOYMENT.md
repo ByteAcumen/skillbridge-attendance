@@ -35,10 +35,13 @@ CLERK_SECRET_KEY=
 CLERK_PUBLISHABLE_KEY=
 FRONTEND_URL=
 PROGRAMME_TIME_ZONE=Asia/Kolkata
+SEED_DEMO_DATA=false
+TEST_ACCOUNT_PASSWORD=SkillBridge@2026!
 GOOGLE_GENERATIVE_AI_API_KEY=
 ```
 
 `GOOGLE_GENERATIVE_AI_API_KEY` is optional. The current insights feature works without paid AI credentials.
+`SEED_DEMO_DATA=true` makes the Docker/Railway start command create or update the five reviewer accounts before the API starts.
 
 ## Clerk Setup
 
@@ -50,7 +53,7 @@ GOOGLE_GENERATIVE_AI_API_KEY=
 4. Add deployed frontend URL after Vercel deployment.
 5. Copy the same Clerk publishable/secret key pair into frontend and backend env files.
 
-For development test accounts, use addresses containing `+clerk_test` and verification code `424242`.
+For the deployed demo accounts, run `npm run accounts:seed` locally or set `SEED_DEMO_DATA=true` on Railway for one redeploy. The shared password is `SkillBridge@2026!`; the test-mode verification code is `424242` if Clerk asks for it.
 
 ## Neon Setup
 
@@ -89,13 +92,13 @@ Output is handled automatically by Next.js on Vercel.
 Build command:
 
 ```text
-npm install && npm run build
+Dockerfile
 ```
 
 Start command:
 
 ```text
-npm start
+sh -c 'if [ "$SEED_DEMO_DATA" = "true" ]; then node dist/db/test-accounts.js; fi; node dist/index.js'
 ```
 
 Verify:
@@ -103,6 +106,13 @@ Verify:
 ```text
 GET /health
 ```
+
+Recommended Railway demo seed flow:
+
+1. Set `SEED_DEMO_DATA=true`.
+2. Redeploy the backend.
+3. Confirm the deploy logs show "Demo accounts are ready".
+4. Optionally set `SEED_DEMO_DATA=false` and redeploy if you want demo edits to persist.
 
 ## Render Fallback
 

@@ -5,10 +5,14 @@ import { Badge } from '@/components/ui/status'
 export function AuthPageShell({
   title,
   eyebrow,
+  detail,
+  aside,
   children,
 }: {
   title: string
   eyebrow: string
+  detail?: string
+  aside?: ReactNode
   children: ReactNode
 }) {
   return (
@@ -19,6 +23,7 @@ export function AuthPageShell({
         <h1 className="mt-5 max-w-xl text-4xl font-semibold tracking-normal text-zinc-950 sm:text-5xl">
           {title}
         </h1>
+        {detail ? <p className="mt-4 max-w-lg text-base leading-7 text-zinc-600">{detail}</p> : null}
         <div className="mt-8 grid gap-3 text-sm text-zinc-600 sm:grid-cols-2">
           {['Server-side role checks', 'Real attendance records', 'Five focused dashboards', 'Deployment-ready stack'].map(
             (item) => (
@@ -28,6 +33,7 @@ export function AuthPageShell({
             ),
           )}
         </div>
+        {aside}
       </section>
       <section className="animate-fade-up animate-delay-1 flex justify-center lg:justify-end">
         {children}

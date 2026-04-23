@@ -5,7 +5,7 @@
     "dockerfilePath": "./Dockerfile"
   },
   "deploy": {
-    "startCommand": "node dist/index.js",
+    "startCommand": "sh -c 'if [ \"$SEED_DEMO_DATA\" = \"true\" ]; then node dist/db/test-accounts.js; fi; node dist/index.js'",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",

@@ -30,4 +30,4 @@ EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
 
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "if [ \"$SEED_DEMO_DATA\" = \"true\" ]; then node dist/db/test-accounts.js; fi; node dist/index.js"]

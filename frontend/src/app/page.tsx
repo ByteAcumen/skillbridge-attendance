@@ -8,6 +8,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { HomeActions } from '@/components/site/home-actions'
+import { RoleAccessGrid } from '@/components/auth/role-access-grid'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/status'
 import { redirectSignedInUser } from '@/lib/auth-redirect'
@@ -103,7 +104,25 @@ export default async function Home() {
         <ProductPreview />
       </section>
 
-      <section className="border-y border-zinc-200 bg-white py-16" id="roles">
+      <section className="border-y border-zinc-200 bg-white py-16" id="test-accounts">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold text-emerald-700">Reviewer access</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-normal text-zinc-950">
+              Pick a role and enter a seeded workspace.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-zinc-600">
+              Each role has a permanent demo account with matching database rows
+              and seeded attendance data, so reviewers can verify the full flow.
+            </p>
+          </div>
+          <div className="mt-8">
+            <RoleAccessGrid />
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-zinc-200 bg-white py-16" id="roles">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold text-emerald-700">Role-aware by design</p>

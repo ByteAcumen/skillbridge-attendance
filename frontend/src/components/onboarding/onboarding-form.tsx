@@ -12,22 +12,26 @@ import { TextField } from '@/components/ui/field'
 import { Message } from '@/components/ui/status'
 import { useApiClient } from '@/hooks/use-api'
 import type { AppUser } from '@/lib/api'
-import { type Role, roleOptions } from '@/lib/roles'
+import { isRole, type Role, roleOptions } from '@/lib/roles'
 import { cn } from '@/lib/utils'
 
-export function OnboardingForm() {
+export function OnboardingForm({ initialRole }: { initialRole?: Role }) {
   const router = useRouter()
   const request = useApiClient()
   const { isLoaded, isSignedIn } = useAuth()
   const { user } = useUser()
   const email = user?.primaryEmailAddress?.emailAddress ?? ''
   const defaultName = user?.fullName ?? user?.username ?? ''
+  const metadataRole = isRole(user?.unsafeMetadata?.selectedRole)
+    ? user.unsafeMetadata.selectedRole
+    : null
 
   const [name, setName] = useState(defaultName)
-  const [role, setRole] = useState<Role>('STUDENT')
+  const [selectedRole, setSelectedRole] = useState<Role | null>(initialRole ?? null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const profileName = name || defaultName
+  const role = selectedRole ?? metadataRole ?? 'STUDENT'
 
   const canSubmit = useMemo(
     () => Boolean(profileName.trim() && email && role && isSignedIn),
@@ -123,7 +127,7 @@ export function OnboardingForm() {
                   : 'border-zinc-200 shadow-zinc-950/[0.03]',
               )}
               key={option.value}
-              onClick={() => setRole(option.value)}
+              onClick={() => setSelectedRole(option.value)}
               type="button"
             >
               <div className="flex items-center justify-between gap-3">
