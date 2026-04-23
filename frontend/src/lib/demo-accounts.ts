@@ -14,31 +14,31 @@ export const demoAccounts: Record<Role, DemoAccount> = {
   STUDENT: {
     role: 'STUDENT',
     name: 'Student Demo',
-    email: 'student.skillbridge2026@gmail.com',
+    email: 'student+clerk_test@skillbridge.dev',
     dataHint: 'Enrolled in the Frontend Test Account Cohort with one active session.',
   },
   TRAINER: {
     role: 'TRAINER',
     name: 'Trainer Demo',
-    email: 'trainer.skillbridge2026@gmail.com',
+    email: 'trainer+clerk_test@skillbridge.dev',
     dataHint: 'Owns the demo cohort, can create sessions, and can issue invite links.',
   },
   INSTITUTION: {
     role: 'INSTITUTION',
     name: 'Institution Demo',
-    email: 'institution.skillbridge2026@gmail.com',
+    email: 'institution+clerk_test@skillbridge.dev',
     dataHint: 'Scoped to State Polytechnic Institute with seeded batch summaries.',
   },
   PROGRAMME_MANAGER: {
     role: 'PROGRAMME_MANAGER',
     name: 'Programme Manager Demo',
-    email: 'manager.skillbridge2026@gmail.com',
+    email: 'manager+clerk_test@skillbridge.dev',
     dataHint: 'Can review programme-wide and institution-level attendance summaries.',
   },
   MONITORING_OFFICER: {
     role: 'MONITORING_OFFICER',
     name: 'Monitoring Officer Demo',
-    email: 'monitor.skillbridge2026@gmail.com',
+    email: 'monitor+clerk_test@skillbridge.dev',
     dataHint: 'Read-only access to programme and institution dashboards.',
   },
 }
