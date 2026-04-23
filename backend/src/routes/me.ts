@@ -12,7 +12,7 @@
  *   the Clerk token directly, then upsert the user row.
  */
 import { Hono } from 'hono'
-import { eq } from 'drizzle-orm'
+import { eq, or } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db/client.js'
 import { institutions, users } from '../db/schema.js'
@@ -111,14 +111,25 @@ meRouter.post('/sync', async (c) => {
     await ensureDemoInstitution()
   }
 
-  const [syncedUser] = await db
-    .insert(users)
-    .values({ clerkUserId, name, email, role, institutionId })
-    .onConflictDoUpdate({
-      target: users.clerkUserId,
-      set: { name, email, role, institutionId },
-    })
-    .returning()
+  let existingUser = await db.query.users.findFirst({
+    where: or(eq(users.clerkUserId, clerkUserId), eq(users.email, email)),
+  })
+
+  let syncedUser
+  if (existingUser) {
+    const [updated] = await db
+      .update(users)
+      .set({ clerkUserId, name, email, role, institutionId })
+      .where(eq(users.id, existingUser.id))
+      .returning()
+    syncedUser = updated
+  } else {
+    const [inserted] = await db
+      .insert(users)
+      .values({ clerkUserId, name, email, role, institutionId })
+      .returning()
+    syncedUser = inserted
+  }
 
   return c.json({ ok: true, user: syncedUser }, 201)
 })
