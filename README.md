@@ -17,7 +17,6 @@ All reviewer accounts use:
 
 ```text
 Password: SkillBridge@2026!
-Verification code if Clerk asks: 424242
 ```
 
 | Role | Direct sign-in | Email | Seeded data |
@@ -28,12 +27,14 @@ Verification code if Clerk asks: 424242
 | Programme Manager | `/sign-in?role=programme-manager` | `manager.skillbridge2026@gmail.com` | Can view programme and institution summaries |
 | Monitoring Officer | `/sign-in?role=monitoring-officer` | `monitor.skillbridge2026@gmail.com` | Read-only programme and institution oversight |
 
-Recommended review flow:
+Sign-in flow:
 
-1. Open https://skillbridge-attendance.vercel.app
-2. Scroll to "Reviewer access" or go directly to one of the role URLs above.
-3. Sign in with the matching email and shared password.
-4. Verify that each role sees only its own actions and data.
+1. Open https://skillbridge-attendance.vercel.app/sign-in
+2. Click the role you want to review — the email address auto-fills.
+3. Enter the password above and click Continue.
+4. Clerk may send a one-time code to the account inbox for new-device verification.
+5. You will land on that role's live dashboard with real seeded data.
+
 
 ## 3. Local Setup
 
