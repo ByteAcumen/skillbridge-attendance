@@ -22,7 +22,7 @@ function ProductPreview() {
   ]
 
   return (
-      <div className="animate-fade-up animate-delay-2 rounded-2xl border border-zinc-200/60 bg-white/60 p-6 shadow-2xl shadow-emerald-950/10 backdrop-blur-xl" id="insights">
+      <div className="animate-fade-up animate-delay-2 rounded-lg border border-zinc-200/60 bg-white/70 p-6 shadow-2xl shadow-emerald-950/10 backdrop-blur-xl" id="insights">
         <div className="mb-6 flex items-center justify-between border-b border-zinc-100 pb-4">
           <div>
             <p className="text-base font-semibold text-zinc-950">Programme summary</p>
@@ -36,13 +36,13 @@ function ProductPreview() {
             ['Students', '1,248'],
             ['Attendance', '88%'],
           ].map(([label, value]) => (
-            <div className="rounded-xl border border-zinc-100/80 bg-white/50 p-5 shadow-sm transition-all hover:shadow-md" key={label}>
+            <div className="rounded-lg border border-zinc-100/80 bg-white/60 p-5 shadow-sm transition-all hover:shadow-md" key={label}>
               <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{label}</p>
               <p className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">{value}</p>
             </div>
           ))}
         </div>
-        <div className="mt-6 overflow-hidden rounded-xl border border-zinc-100/80 bg-white/50">
+        <div className="mt-6 overflow-hidden rounded-lg border border-zinc-100/80 bg-white/60">
           {rows.map(([batch, rate, status]) => (
             <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b border-zinc-100 px-5 py-4 text-sm last:border-b-0 transition-colors hover:bg-zinc-50/50" key={batch}>
               <span className="font-medium text-zinc-800">{batch}</span>
@@ -51,7 +51,7 @@ function ProductPreview() {
             </div>
           ))}
         </div>
-        <div className="mt-6 rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-5 shadow-inner">
+        <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-inner">
           <div className="relative flex items-start gap-4">
             <Sparkles className="mt-0.5 h-5 w-5 text-emerald-600 animate-pulse" />
             <p className="text-sm leading-6 text-emerald-900 font-medium">
@@ -72,12 +72,12 @@ export default async function Home() {
         <div className="animate-fade-up">
           <Badge tone="info">Full-stack attendance prototype</Badge>
           <h1 className="mt-5 max-w-3xl text-5xl font-semibold tracking-normal text-zinc-950 sm:text-6xl">
-            Clean attendance control for every SkillBridge role.
+            Attendance operations for institutions, trainers, and programme teams.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-600">
-            Students mark attendance, trainers manage sessions, institutions
-            track batches, and programme teams monitor the whole system through
-            real API-backed dashboards.
+            A deployed prototype where students see their enrolled batches,
+            trainers manage live sessions, institutions inspect cohort health,
+            and programme teams monitor real attendance signals.
           </p>
           <HomeActions />
           <div className="mt-8 grid gap-3 sm:grid-cols-3">

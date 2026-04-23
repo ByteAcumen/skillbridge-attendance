@@ -57,6 +57,7 @@ batchesRouter.get('/', async (c) => {
     const result = await db.query.batches.findMany({
       where: eq(batches.institutionId, user.institutionId),
       orderBy: [desc(batches.createdAt)],
+      with: { institution: true },
     })
     return c.json({ batches: result })
   }
@@ -64,7 +65,7 @@ batchesRouter.get('/', async (c) => {
   if (user.role === 'TRAINER') {
     const links = await db.query.batchTrainers.findMany({
       where: eq(batchTrainers.trainerId, user.id),
-      with: { batch: true },
+      with: { batch: { with: { institution: true } } },
     })
     return c.json({ batches: links.map((l) => l.batch) })
   }
@@ -72,7 +73,7 @@ batchesRouter.get('/', async (c) => {
   if (user.role === 'STUDENT') {
     const links = await db.query.batchStudents.findMany({
       where: eq(batchStudents.studentId, user.id),
-      with: { batch: true },
+      with: { batch: { with: { institution: true } } },
     })
     return c.json({ batches: links.map((l) => l.batch) })
   }
@@ -92,6 +93,7 @@ batchesRouter.get('/:id', async (c) => {
   const batch = await db.query.batches.findFirst({
     where: eq(batches.id, batchId),
     with: {
+      institution: true,
       trainers: { with: { trainer: { columns: { id: true, name: true, email: true } } } },
       students: { with: { student: { columns: { id: true, name: true, email: true } } } },
     },

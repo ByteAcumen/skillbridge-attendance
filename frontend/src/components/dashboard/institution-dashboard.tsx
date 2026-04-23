@@ -1,12 +1,13 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Building2, GraduationCap, UsersRound } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { SelectField } from '@/components/ui/field'
 import { MetricCard } from '@/components/ui/metric-card'
 import { Message } from '@/components/ui/status'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
-import { EmptyState, LoadingBlock, SectionTitle } from '@/components/dashboard/shared'
+import { ContextGrid, EmptyState, LoadingBlock, SectionTitle, shortId } from '@/components/dashboard/shared'
 import { useApiQuery } from '@/hooks/use-api'
 import type { AppUser, Batch, BatchDetail, BatchSummaryRow } from '@/lib/api'
 
@@ -15,11 +16,12 @@ type RolePanelProps = { user: AppUser }
 export function InstitutionDashboard({ user }: RolePanelProps) {
   const batches = useApiQuery<{ batches: Batch[] }>('/api/batches')
   const [selectedBatchId, setSelectedBatchId] = useState('')
+  const activeBatchId = selectedBatchId || batches.data?.batches[0]?.id || ''
   const summary = useApiQuery<{ batch: Batch; summary: BatchSummaryRow[] }>(
-    selectedBatchId ? `/api/batches/${selectedBatchId}/summary` : null,
+    activeBatchId ? `/api/batches/${activeBatchId}/summary` : null,
   )
   const details = useApiQuery<{ batch: BatchDetail }>(
-    selectedBatchId ? `/api/batches/${selectedBatchId}` : null,
+    activeBatchId ? `/api/batches/${activeBatchId}` : null,
   )
 
   const batchOptions = useMemo(
@@ -33,6 +35,29 @@ export function InstitutionDashboard({ user }: RolePanelProps) {
   return (
     <DashboardShell title="Institution overview" user={user}>
       <div className="grid gap-8">
+        <ContextGrid
+          items={[
+            {
+              label: 'Institution',
+              value: user.institution?.name ?? details.data?.batch.institution?.name ?? 'Institution pending',
+              detail: user.institution?.region ? `${user.institution.region} region` : 'Batches are scoped to this institution',
+              icon: <Building2 className="h-5 w-5" />,
+            },
+            {
+              label: 'Selected batch',
+              value: details.data?.batch.name ?? 'Choose a batch',
+              detail: details.data?.batch.id ? shortId(details.data.batch.id) : 'Summary loads after selection',
+              icon: <GraduationCap className="h-5 w-5" />,
+            },
+            {
+              label: 'Roster size',
+              value: `${details.data?.batch.students?.length ?? 0} students`,
+              detail: `${details.data?.batch.trainers?.length ?? 0} trainers assigned`,
+              icon: <UsersRound className="h-5 w-5" />,
+            },
+          ]}
+        />
+
         <div className="grid gap-4 md:grid-cols-3">
           <MetricCard label="Batches" value={batches.data?.batches.length ?? 0} />
           <MetricCard label="Trainers" value={details.data?.batch.trainers?.length ?? 0} />
@@ -45,18 +70,21 @@ export function InstitutionDashboard({ user }: RolePanelProps) {
             label="Batch"
             onChange={(event) => setSelectedBatchId(event.target.value)}
             options={batchOptions}
-            value={selectedBatchId}
+            value={activeBatchId}
           />
         </Card>
 
         {summary.isLoading || details.isLoading ? <LoadingBlock /> : null}
-        {selectedBatchId && summary.error ? <Message tone="danger">{summary.error}</Message> : null}
-        {selectedBatchId && details.data ? (
+        {activeBatchId && summary.error ? <Message tone="danger">{summary.error}</Message> : null}
+        {activeBatchId && details.data ? (
           <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
             <Card className="p-0 overflow-hidden flex flex-col">
               <div className="border-b border-zinc-100 bg-zinc-50/50 px-5 py-4">
                 <p className="font-semibold text-zinc-950">{details.data.batch.name}</p>
-                <p className="mt-1 font-mono text-xs text-zinc-500">{details.data.batch.id}</p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  {details.data.batch.institution?.name ?? user.institution?.name ?? 'Institution unavailable'} -{' '}
+                  <span className="font-mono">{details.data.batch.id}</span>
+                </p>
               </div>
               <div className="px-5 py-4 flex-1">
                 <p className="text-sm font-semibold text-zinc-950">Trainers</p>
@@ -72,6 +100,20 @@ export function InstitutionDashboard({ user }: RolePanelProps) {
                   {details.data.batch.trainers?.length === 0 ? (
                     <p className="text-sm text-zinc-500">No trainers assigned.</p>
                   ) : null}
+                </div>
+                <p className="mt-6 text-sm font-semibold text-zinc-950">Students</p>
+                <div className="mt-3 grid gap-2">
+                  {details.data.batch.students?.slice(0, 6).map(({ student }) => (
+                    <div className="flex items-center gap-3" key={student.id}>
+                      <div className="grid h-8 w-8 place-items-center rounded-full bg-sky-100 text-xs font-bold uppercase text-sky-700">
+                        {student.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-zinc-700">{student.name}</p>
+                        <p className="text-xs text-zinc-500">{student.email ?? 'No email'}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </Card>
@@ -102,7 +144,7 @@ export function InstitutionDashboard({ user }: RolePanelProps) {
             </Card>
           </div>
         ) : (
-          !selectedBatchId ? (
+          !activeBatchId ? (
             <EmptyState detail="Choose a batch to inspect trainers, students, and attendance." title="Select a batch" />
           ) : null
         )}

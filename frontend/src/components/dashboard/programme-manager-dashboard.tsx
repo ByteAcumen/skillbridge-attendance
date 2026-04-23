@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
+import { Building2, GraduationCap, Plus, UsersRound } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,14 @@ import { Card } from '@/components/ui/card'
 import { SelectField, TextField } from '@/components/ui/field'
 import { Badge, Message } from '@/components/ui/status'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
-import { LoadingBlock, ProgrammeOverview, SectionTitle, formatRate } from '@/components/dashboard/shared'
+import {
+  ContextGrid,
+  LoadingBlock,
+  PeopleCount,
+  ProgrammeOverview,
+  SectionTitle,
+  formatRate,
+} from '@/components/dashboard/shared'
 import { Modal } from '@/components/ui/modal'
 import { useApiClient, useApiQuery } from '@/hooks/use-api'
 import type { AppUser, Institution, InstitutionBatchSummary, ProgrammeSummary } from '@/lib/api'
@@ -22,8 +29,9 @@ export function ProgrammeManagerDashboard({ user }: RolePanelProps) {
   const [institutionName, setInstitutionName] = useState('')
   const [region, setRegion] = useState('')
   const [selectedInstitutionId, setSelectedInstitutionId] = useState('')
+  const activeInstitutionId = selectedInstitutionId || institutions.data?.institutions[0]?.id || ''
   const institutionSummary = useApiQuery<{ institution: Institution; batches: InstitutionBatchSummary[] }>(
-    selectedInstitutionId ? `/api/institutions/${selectedInstitutionId}/summary` : null,
+    activeInstitutionId ? `/api/institutions/${activeInstitutionId}/summary` : null,
   )
   const [message, setMessage] = useState<string | null>(null)
 
@@ -77,6 +85,29 @@ export function ProgrammeManagerDashboard({ user }: RolePanelProps) {
         {summary.data ? <ProgrammeOverview summary={summary.data} /> : null}
         {summary.error ? <Message tone="danger">{summary.error}</Message> : null}
 
+        <ContextGrid
+          items={[
+            {
+              label: 'Programme scope',
+              value: `${summary.data?.institutions.length ?? 0} institutions`,
+              detail: 'Cross-institution attendance governance',
+              icon: <Building2 className="h-5 w-5" />,
+            },
+            {
+              label: 'Selected institution',
+              value: institutionSummary.data?.institution.name ?? 'Select an institution',
+              detail: institutionSummary.data?.institution.region ? `${institutionSummary.data.institution.region} region` : 'Review batch performance below',
+              icon: <GraduationCap className="h-5 w-5" />,
+            },
+            {
+              label: 'Current focus',
+              value: `${institutionSummary.data?.batches.length ?? 0} batches`,
+              detail: 'Use this view to spot low attendance batches',
+              icon: <UsersRound className="h-5 w-5" />,
+            },
+          ]}
+        />
+
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Institution">
           <form className="grid gap-4" onSubmit={createInstitution}>
             <TextField
@@ -107,7 +138,7 @@ export function ProgrammeManagerDashboard({ user }: RolePanelProps) {
                 label="Institution"
                 onChange={(event) => setSelectedInstitutionId(event.target.value)}
                 options={institutionOptions}
-                value={selectedInstitutionId}
+                value={activeInstitutionId}
               />
             </div>
             <div className="flex-1 divide-y divide-zinc-100 overflow-y-auto max-h-72">
@@ -115,17 +146,20 @@ export function ProgrammeManagerDashboard({ user }: RolePanelProps) {
                 <div className="flex items-center justify-between gap-3 px-5 py-4 text-sm hover:bg-zinc-50/50 transition-colors" key={batch.batch_id}>
                   <div>
                     <span className="block font-medium text-zinc-950">{batch.batch_name}</span>
-                    <span className="block text-xs text-zinc-500 mt-0.5">{batch.student_count} students</span>
+                    <span className="mt-2 flex flex-wrap gap-2">
+                      <PeopleCount count={batch.student_count} label="students" />
+                      <PeopleCount count={batch.session_count} label="sessions" />
+                    </span>
                   </div>
                   <Badge tone={batch.attendance_rate >= 75 ? 'good' : 'warn'}>
                     {formatRate(batch.attendance_rate)}
                   </Badge>
                 </div>
               ))}
-              {selectedInstitutionId && institutionSummary.data?.batches.length === 0 ? (
+              {activeInstitutionId && institutionSummary.data?.batches.length === 0 ? (
                 <div className="p-8 text-center text-sm text-zinc-500">No batches found.</div>
               ) : null}
-              {!selectedInstitutionId ? (
+              {!activeInstitutionId ? (
                 <div className="p-8 text-center text-sm text-zinc-500">Select an institution to view its batches.</div>
               ) : null}
             </div>

@@ -35,6 +35,7 @@ export type Batch = {
   name: string
   institutionId: string
   createdAt: string
+  institution?: Institution | null
 }
 
 export type BatchMember = {
@@ -63,6 +64,8 @@ export type TrainerSession = Session & {
   batch?: {
     id: string
     name: string
+    institutionId?: string
+    institution?: Institution | null
   }
 }
 
@@ -74,6 +77,8 @@ export type ActiveSession = {
   end_time: string
   batch_id: string
   batch_name: string
+  institution_id?: string
+  institution_name?: string
 }
 
 export type Invite = {

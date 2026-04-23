@@ -1,6 +1,6 @@
 'use client'
 
-import { ClipboardCheck, Link2, Loader2 } from 'lucide-react'
+import { Building2, ClipboardCheck, GraduationCap, Hash, Link2, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,14 @@ import { TextField } from '@/components/ui/field'
 import { MetricCard } from '@/components/ui/metric-card'
 import { Message } from '@/components/ui/status'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
-import { EmptyState, LoadingBlock, SectionTitle } from '@/components/dashboard/shared'
+import {
+  ContextGrid,
+  EmptyState,
+  LoadingBlock,
+  SectionTitle,
+  SessionMeta,
+  shortId,
+} from '@/components/dashboard/shared'
 import { Modal } from '@/components/ui/modal'
 import { useApiClient, useApiQuery } from '@/hooks/use-api'
 import type { ActiveSession, AppUser, Batch } from '@/lib/api'
@@ -26,6 +33,9 @@ export function StudentDashboard({ user }: RolePanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const firstBatch = batches.data?.batches[0]
+  const institutionName =
+    firstBatch?.institution?.name ?? user.institution?.name ?? 'Not assigned yet'
 
   async function joinBatch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -78,6 +88,29 @@ export function StudentDashboard({ user }: RolePanelProps) {
       <div className="grid gap-8">
         {message ? <Message tone={message.includes('Could not') ? 'danger' : 'good'}>{message}</Message> : null}
 
+        <ContextGrid
+          items={[
+            {
+              label: 'Institution',
+              value: institutionName,
+              detail: firstBatch?.institution?.region ? `${firstBatch.institution.region} region` : 'Join a batch to receive institution context',
+              icon: <Building2 className="h-5 w-5" />,
+            },
+            {
+              label: 'Primary batch',
+              value: firstBatch?.name ?? 'No batch yet',
+              detail: firstBatch ? shortId(firstBatch.id) : 'Use a trainer invite to enroll',
+              icon: <GraduationCap className="h-5 w-5" />,
+            },
+            {
+              label: 'Attendance window',
+              value: activeSessions.data?.sessions.length ? 'Open now' : 'Waiting',
+              detail: 'Students can mark only live enrolled sessions',
+              icon: <ClipboardCheck className="h-5 w-5" />,
+            },
+          ]}
+        />
+
         <div className="grid gap-4 md:grid-cols-3">
           <MetricCard label="My batches" value={batches.data?.batches.length ?? 0} />
           <MetricCard
@@ -93,13 +126,15 @@ export function StudentDashboard({ user }: RolePanelProps) {
             <TextField
               label="Batch ID"
               onChange={(event) => setJoinBatchId(event.target.value)}
-              placeholder="e.g. batch_..."
+              hint="Demo batch: batch_test_frontend_accounts"
+              placeholder="batch_test_frontend_accounts"
               value={joinBatchId}
             />
             <TextField
               label="Invite token"
               onChange={(event) => setInviteToken(event.target.value)}
-              placeholder="Paste trainer invite token"
+              hint="Demo invite token: skillbridge-demo"
+              placeholder="skillbridge-demo"
               value={inviteToken}
             />
             <div className="mt-4 flex justify-end gap-3">
@@ -123,9 +158,12 @@ export function StudentDashboard({ user }: RolePanelProps) {
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <p className="text-lg font-semibold text-emerald-950">{session.title}</p>
-                    <p className="mt-1 text-sm font-medium text-emerald-800/80">
-                      {session.batch_name} &middot; {session.start_time} to {session.end_time}
-                    </p>
+                    <div className="mt-2 grid gap-1">
+                      <p className="text-sm font-medium text-emerald-800/80">
+                        {session.batch_name} at {session.institution_name ?? institutionName}
+                      </p>
+                      <SessionMeta date={session.date} start={session.start_time} end={session.end_time} />
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => void markAttendance(session.id, 'PRESENT')}>
@@ -144,18 +182,30 @@ export function StudentDashboard({ user }: RolePanelProps) {
         <section>
           <Card className="flex flex-col p-0 overflow-hidden">
             <div className="border-b border-zinc-100 bg-zinc-50/50 px-5 py-4">
-              <p className="font-semibold text-zinc-950">My batches</p>
+              <p className="font-semibold text-zinc-950">My batch enrollment</p>
+              <p className="mt-1 text-sm text-zinc-500">Institution and batch context for this student account.</p>
             </div>
             <div className="divide-y divide-zinc-100 flex-1 overflow-y-auto max-h-72">
               {batches.isLoading ? <div className="p-5"><LoadingBlock /></div> : null}
               {batches.data?.batches.map((batch) => (
                 <div className="px-5 py-4 text-sm hover:bg-zinc-50 transition-colors" key={batch.id}>
-                  <p className="font-medium text-zinc-950">{batch.name}</p>
-                  <p className="mt-1 font-mono text-xs text-zinc-500">{batch.id}</p>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-medium text-zinc-950">{batch.name}</p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {batch.institution?.name ?? 'Institution unavailable'}
+                        {batch.institution?.region ? ` - ${batch.institution.region}` : ''}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-600">
+                      <Hash className="h-3.5 w-3.5" />
+                      {shortId(batch.id)}
+                    </span>
+                  </div>
                 </div>
               ))}
               {!batches.isLoading && batches.data?.batches.length === 0 ? (
-                <div className="p-8 text-center text-sm text-zinc-500">You haven't joined any batches yet.</div>
+                <div className="p-8 text-center text-sm text-zinc-500">You have not joined any batches yet.</div>
               ) : null}
             </div>
           </Card>

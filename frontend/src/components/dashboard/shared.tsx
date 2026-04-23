@@ -1,6 +1,6 @@
 'use client'
 
-import { BarChart3, Loader2, Sparkles } from 'lucide-react'
+import { BarChart3, Building2, CalendarClock, Loader2, Sparkles, UsersRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Card } from '@/components/ui/card'
 import { MetricCard } from '@/components/ui/metric-card'
@@ -13,6 +13,22 @@ export function toNumber(value: unknown) {
 
 export function formatRate(value: number | string | null | undefined) {
   return `${Math.round(Number(value ?? 0))}%`
+}
+
+export function formatDate(value: string | Date | null | undefined) {
+  if (!value) return 'Not scheduled'
+  const date = typeof value === 'string' ? new Date(`${value.slice(0, 10)}T00:00:00`) : value
+
+  return new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
+export function shortId(value: string | null | undefined) {
+  if (!value) return 'Not assigned'
+  return value.length > 18 ? `${value.slice(0, 10)}...${value.slice(-4)}` : value
 }
 
 export function EmptyState({ title, detail }: { title: string; detail: string }) {
@@ -49,6 +65,62 @@ export function LoadingBlock() {
     <div className="grid min-h-40 place-items-center rounded-lg border border-zinc-200 bg-white">
       <Loader2 className="h-6 w-6 animate-spin text-emerald-700" />
     </div>
+  )
+}
+
+export function ContextGrid({
+  items,
+}: {
+  items: Array<{
+    label: string
+    value: ReactNode
+    detail?: ReactNode
+    icon?: ReactNode
+  }>
+}) {
+  return (
+    <div className="grid gap-3 md:grid-cols-3">
+      {items.map((item) => (
+        <Card className="min-h-28" key={item.label}>
+          <div className="flex items-start gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700">
+              {item.icon ?? <Building2 className="h-5 w-5" />}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{item.label}</p>
+              <div className="mt-1 break-words text-base font-semibold text-zinc-950">{item.value}</div>
+              {item.detail ? <div className="mt-1 text-sm leading-5 text-zinc-500">{item.detail}</div> : null}
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+export function SessionMeta({
+  date,
+  start,
+  end,
+}: {
+  date?: string
+  start?: string
+  end?: string
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-sm text-zinc-500">
+      <CalendarClock className="h-4 w-4" />
+      {formatDate(date)} {start && end ? `- ${start} to ${end}` : ''}
+    </span>
+  )
+}
+
+export function PeopleCount({ count, label }: { count: number | string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-700">
+      <UsersRound className="h-3.5 w-3.5" />
+      {count} {label}
+    </span>
   )
 }
 

@@ -1,16 +1,23 @@
 'use client'
 
-import { CalendarPlus, Link2, Plus, RefreshCw } from 'lucide-react'
+import { Building2, CalendarPlus, GraduationCap, Link2, Plus, RefreshCw } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { SelectField, TextField } from '@/components/ui/field'
 import { MetricCard } from '@/components/ui/metric-card'
-import { Badge, Message } from '@/components/ui/status'
+import { Message } from '@/components/ui/status'
 import { Modal } from '@/components/ui/modal'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
-import { EmptyState, LoadingBlock, SectionTitle } from '@/components/dashboard/shared'
+import {
+  ContextGrid,
+  EmptyState,
+  LoadingBlock,
+  SectionTitle,
+  SessionMeta,
+  shortId,
+} from '@/components/dashboard/shared'
 import { useApiClient, useApiQuery } from '@/hooks/use-api'
 import type { AppUser, AttendanceRow, Batch, Invite, Session, TrainerSession } from '@/lib/api'
 
@@ -40,6 +47,13 @@ export function TrainerDashboard({ user }: RolePanelProps) {
 
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false)
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false)
+  const sessionCountByBatch = useMemo(() => {
+    const counts = new Map<string, number>()
+    sessions.data?.sessions.forEach((session) => {
+      counts.set(session.batchId, (counts.get(session.batchId) ?? 0) + 1)
+    })
+    return counts
+  }, [sessions.data])
 
   const batchOptions = useMemo(
     () => [
@@ -141,6 +155,29 @@ export function TrainerDashboard({ user }: RolePanelProps) {
       <div className="grid gap-8">
         {message ? <Message tone={message.includes('Could not') ? 'danger' : 'good'}>{message}</Message> : null}
 
+        <ContextGrid
+          items={[
+            {
+              label: 'Institution',
+              value: user.institution?.name ?? batches.data?.batches[0]?.institution?.name ?? 'Institution pending',
+              detail: user.institution?.region ? `${user.institution.region} region` : 'Trainer batches are scoped here',
+              icon: <Building2 className="h-5 w-5" />,
+            },
+            {
+              label: 'Teaching load',
+              value: `${sessions.data?.sessions.length ?? 0} sessions`,
+              detail: `${batches.data?.batches.length ?? 0} managed batches`,
+              icon: <CalendarPlus className="h-5 w-5" />,
+            },
+            {
+              label: 'Invite workflow',
+              value: latestInvite ? 'Invite ready' : 'Generate when needed',
+              detail: 'Share batch ID plus invite token with students',
+              icon: <Link2 className="h-5 w-5" />,
+            },
+          ]}
+        />
+
         <div className="grid gap-4 md:grid-cols-3">
           <MetricCard label="Managed batches" value={batches.data?.batches.length ?? 0} />
           <MetricCard label="Sessions" value={sessions.data?.sessions.length ?? 0} />
@@ -159,6 +196,60 @@ export function TrainerDashboard({ user }: RolePanelProps) {
           <Button icon={<CalendarPlus className="h-4 w-4" />} onClick={() => setIsSessionModalOpen(true)} variant="secondary">
             Schedule Session
           </Button>
+        </section>
+
+        <section>
+          <SectionTitle eyebrow="Batches" title="Managed batch roster" />
+          {batches.isLoading ? <LoadingBlock /> : null}
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {batches.data?.batches.map((batch) => (
+              <Card className="interactive-card" key={batch.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-zinc-950">{batch.name}</p>
+                    <p className="mt-1 text-sm text-zinc-500">
+                      {batch.institution?.name ?? user.institution?.name ?? 'Institution unavailable'}
+                    </p>
+                  </div>
+                  <GraduationCap className="h-5 w-5 shrink-0 text-emerald-700" />
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-600">
+                    {shortId(batch.id)}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                    <CalendarPlus className="h-3.5 w-3.5" />
+                    {sessionCountByBatch.get(batch.id) ?? 0} sessions
+                  </span>
+                </div>
+              </Card>
+            ))}
+          </div>
+          {!batches.isLoading && batches.data?.batches.length === 0 ? (
+            <EmptyState detail="Create a batch before scheduling sessions or inviting students." title="No managed batches" />
+          ) : null}
+        </section>
+
+        <section>
+          <SectionTitle eyebrow="Schedule" title="Session timeline" />
+          <Card className="p-0 overflow-hidden">
+            <div className="divide-y divide-zinc-100">
+              {sessions.data?.sessions.slice(0, 6).map((session) => (
+                <div className="grid gap-3 px-5 py-4 hover:bg-zinc-50 md:grid-cols-[1fr_auto]" key={session.id}>
+                  <div>
+                    <p className="font-medium text-zinc-950">{session.title}</p>
+                    <p className="mt-1 text-sm text-zinc-500">
+                      {session.batch?.name ?? session.batchId} - {session.batch?.institution?.name ?? 'Institution unavailable'}
+                    </p>
+                  </div>
+                  <SessionMeta date={session.date} start={session.startTime} end={session.endTime} />
+                </div>
+              ))}
+              {!sessions.isLoading && sessions.data?.sessions.length === 0 ? (
+                <div className="p-6 text-center text-sm text-zinc-500">No sessions scheduled yet.</div>
+              ) : null}
+            </div>
+          </Card>
         </section>
 
         <Modal isOpen={isBatchModalOpen} onClose={() => setIsBatchModalOpen(false)} title="Create New Batch">

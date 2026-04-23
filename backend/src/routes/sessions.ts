@@ -63,7 +63,12 @@ sessionsRouter.get('/', requireRole('TRAINER'), async (c) => {
   const result = await db.query.sessions.findMany({
     where: inArray(sessions.batchId, batchIds),
     orderBy: [desc(sessions.date), desc(sessions.startTime)],
-    with: { batch: { columns: { id: true, name: true } } },
+    with: {
+      batch: {
+        columns: { id: true, name: true, institutionId: true },
+        with: { institution: true },
+      },
+    },
   })
 
   return c.json({ sessions: result })
@@ -86,9 +91,12 @@ sessionsRouter.get('/active', requireRole('STUDENT'), async (c) => {
       sessions.start_time,
       sessions.end_time,
       sessions.batch_id,
-      batches.name AS batch_name
+      batches.name AS batch_name,
+      institutions.id AS institution_id,
+      institutions.name AS institution_name
     FROM sessions
     JOIN batches        ON batches.id = sessions.batch_id
+    JOIN institutions   ON institutions.id = batches.institution_id
     JOIN batch_students ON batch_students.batch_id = sessions.batch_id
     WHERE batch_students.student_id = ${user.id}
       AND sessions.date        = ${current.date}
