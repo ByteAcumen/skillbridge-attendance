@@ -2,7 +2,7 @@
 
 Frontend application for the SkillBridge Attendance assignment. This app is built with Next.js App Router, React, Tailwind CSS, and Clerk. It provides the landing page, role-aware sign-in/sign-up, onboarding, and dashboards for all five assignment roles.
 
-For live URLs, reviewer accounts, Task 5 coverage, and submission instructions, use the root [README.md](../README.md). This file is the frontend-specific companion.
+For live URLs, reviewer accounts, and Task 5 coverage, use the root [README.md](../README.md). This file is the frontend-specific companion.
 
 ## What The Frontend Does
 

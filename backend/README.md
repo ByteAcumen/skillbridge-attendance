@@ -2,7 +2,7 @@
 
 Backend API for the SkillBridge Attendance assignment. This service is built with Hono, TypeScript, Drizzle ORM, and PostgreSQL, and it is responsible for authentication verification, role-based authorization, attendance logic, and programme summaries.
 
-The assignment-facing overview, live URLs, reviewer accounts, and submission instructions live in the root [README.md](../README.md). This file is the backend-focused companion.
+The assignment-facing overview, live URLs, and reviewer accounts live in the root [README.md](../README.md). This file is the backend-focused companion.
 
 ## What The Backend Does
 
