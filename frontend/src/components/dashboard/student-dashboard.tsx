@@ -11,10 +11,12 @@ import { Message } from '@/components/ui/status'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 import {
   ContextGrid,
+  DataSyncBanner,
   EmptyState,
   LoadingBlock,
   SectionTitle,
   SessionMeta,
+  WorkflowSteps,
   shortId,
 } from '@/components/dashboard/shared'
 import { Modal } from '@/components/ui/modal'
@@ -36,6 +38,10 @@ export function StudentDashboard({ user }: RolePanelProps) {
   const firstBatch = batches.data?.batches[0]
   const institutionName =
     firstBatch?.institution?.name ?? user.institution?.name ?? 'Not assigned yet'
+  const hasBatch = Boolean(firstBatch)
+  const activeSessionCount = activeSessions.data?.sessions.length ?? 0
+  const hasActiveSession = activeSessionCount > 0
+  const hasMarkedAttendance = Boolean(message?.startsWith('Marked'))
 
   async function joinBatch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -85,8 +91,40 @@ export function StudentDashboard({ user }: RolePanelProps) {
       title="Student attendance"
       user={user}
     >
-      <div className="grid gap-8">
+      <div className="dashboard-flow grid gap-8">
         {message ? <Message tone={message.includes('Could not') ? 'danger' : 'good'}>{message}</Message> : null}
+
+        <DataSyncBanner
+          detail="Your batches and live sessions are loaded from the protected API using the current Clerk session."
+          error={batches.error ?? activeSessions.error}
+          isLoading={batches.isLoading || activeSessions.isLoading}
+          label="Student workspace sync"
+        />
+
+        <WorkflowSteps
+          steps={[
+            {
+              label: 'Institution',
+              detail: institutionName,
+              state: hasBatch ? 'complete' : 'waiting',
+            },
+            {
+              label: 'Batch',
+              detail: firstBatch?.name ?? 'Use an invite to enroll',
+              state: hasBatch ? 'complete' : 'active',
+            },
+            {
+              label: 'Live session',
+              detail: hasActiveSession ? `${activeSessionCount} session open` : 'Waiting for class time',
+              state: hasActiveSession ? 'active' : hasBatch ? 'waiting' : 'locked',
+            },
+            {
+              label: 'Attendance',
+              detail: hasMarkedAttendance ? 'Mark submitted' : 'Available during a live session',
+              state: hasMarkedAttendance ? 'complete' : hasActiveSession ? 'active' : 'waiting',
+            },
+          ]}
+        />
 
         <ContextGrid
           items={[

@@ -7,7 +7,18 @@ import { SelectField } from '@/components/ui/field'
 import { MetricCard } from '@/components/ui/metric-card'
 import { Message } from '@/components/ui/status'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
-import { ContextGrid, EmptyState, LoadingBlock, SectionTitle, shortId } from '@/components/dashboard/shared'
+import {
+  ContextGrid,
+  DataSyncBanner,
+  EmptyState,
+  LoadingBlock,
+  ProgressBar,
+  SectionTitle,
+  WorkflowSteps,
+  formatRate,
+  shortId,
+  toNumber,
+} from '@/components/dashboard/shared'
 import { useApiQuery } from '@/hooks/use-api'
 import type { AppUser, Batch, BatchDetail, BatchSummaryRow } from '@/lib/api'
 
@@ -34,7 +45,39 @@ export function InstitutionDashboard({ user }: RolePanelProps) {
 
   return (
     <DashboardShell title="Institution overview" user={user}>
-      <div className="grid gap-8">
+      <div className="dashboard-flow grid gap-8">
+        <DataSyncBanner
+          detail="Institution users see only their batches, assigned trainers, enrolled students, and batch attendance summaries."
+          error={batches.error ?? summary.error ?? details.error}
+          isLoading={batches.isLoading || summary.isLoading || details.isLoading}
+          label="Institution workspace sync"
+        />
+
+        <WorkflowSteps
+          steps={[
+            {
+              label: 'Institution',
+              detail: user.institution?.name ?? 'Scoped account',
+              state: user.institutionId ? 'complete' : 'waiting',
+            },
+            {
+              label: 'Batch',
+              detail: details.data?.batch.name ?? 'Choose a batch',
+              state: activeBatchId ? 'active' : 'waiting',
+            },
+            {
+              label: 'Roster',
+              detail: `${details.data?.batch.students?.length ?? 0} students, ${details.data?.batch.trainers?.length ?? 0} trainers`,
+              state: details.data ? 'complete' : 'waiting',
+            },
+            {
+              label: 'Summary',
+              detail: `${summary.data?.summary.length ?? 0} attendance rows`,
+              state: summary.data ? 'complete' : 'waiting',
+            },
+          ]}
+        />
+
         <ContextGrid
           items={[
             {
@@ -114,27 +157,57 @@ export function InstitutionDashboard({ user }: RolePanelProps) {
                       </div>
                     </div>
                   ))}
+                  {(details.data.batch.students?.length ?? 0) > 6 ? (
+                    <p className="text-xs font-medium text-zinc-500">
+                      +{(details.data.batch.students?.length ?? 0) - 6} more students
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </Card>
 
             <Card className="p-0 overflow-hidden">
-              <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 border-b border-zinc-200 bg-zinc-50/50 px-5 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              <div className="grid gap-3 border-b border-zinc-200 bg-zinc-50/50 px-5 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 sm:grid-cols-[1fr_180px_auto]">
                 <span>Student</span>
-                <span className="text-center">Total</span>
-                <span className="text-emerald-700 text-center">Present</span>
-                <span className="text-amber-700 text-center">Late</span>
+                <span>Attendance rate</span>
+                <span className="text-right">Marks</span>
               </div>
               <div className="divide-y divide-zinc-100">
                 {summary.data?.summary.map((row) => (
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 px-5 py-3 text-sm hover:bg-zinc-50 transition-colors" key={`${row.student_name}-${row.email}`}>
+                  <div className="grid gap-3 px-5 py-3 text-sm transition-colors hover:bg-zinc-50 sm:grid-cols-[1fr_180px_auto] sm:items-center" key={`${row.student_name}-${row.email}`}>
                     <div>
                       <p className="font-medium text-zinc-950">{row.student_name}</p>
                       <p className="text-xs text-zinc-500">{row.email}</p>
                     </div>
-                    <span className="text-zinc-600 font-medium w-12 text-center bg-zinc-100 rounded py-1">{row.marked_sessions}</span>
-                    <span className="text-emerald-700 font-medium w-16 text-center bg-emerald-50 rounded py-1">{row.present_count}</span>
-                    <span className="text-amber-700 font-medium w-16 text-center bg-amber-50 rounded py-1">{row.late_count}</span>
+                    <ProgressBar
+                      label={`${row.marked_sessions} marked`}
+                      value={
+                        toNumber(row.marked_sessions) === 0
+                          ? 0
+                          : Math.round(
+                              ((toNumber(row.present_count) + toNumber(row.late_count)) /
+                                toNumber(row.marked_sessions)) *
+                                100,
+                            )
+                      }
+                    />
+                    <div className="flex flex-wrap gap-2 sm:justify-end">
+                      <span className="rounded-md bg-emerald-50 px-2 py-1 font-medium text-emerald-700">
+                        {row.present_count} present
+                      </span>
+                      <span className="rounded-md bg-amber-50 px-2 py-1 font-medium text-amber-700">
+                        {row.late_count} late
+                      </span>
+                      <span className="rounded-md bg-zinc-100 px-2 py-1 font-medium text-zinc-600">
+                        {formatRate(
+                          toNumber(row.marked_sessions) === 0
+                            ? 0
+                            : ((toNumber(row.present_count) + toNumber(row.late_count)) /
+                                toNumber(row.marked_sessions)) *
+                                100,
+                        )}
+                      </span>
+                    </div>
                   </div>
                 ))}
                 {summary.data?.summary.length === 0 ? (

@@ -1,6 +1,16 @@
 'use client'
 
-import { Building2, CalendarPlus, GraduationCap, Link2, Plus, RefreshCw } from 'lucide-react'
+import {
+  Building2,
+  CalendarPlus,
+  CheckCircle2,
+  Clock3,
+  GraduationCap,
+  Link2,
+  Plus,
+  RefreshCw,
+  XCircle,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
@@ -12,14 +22,17 @@ import { Modal } from '@/components/ui/modal'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 import {
   ContextGrid,
+  DataSyncBanner,
   EmptyState,
   LoadingBlock,
   SectionTitle,
   SessionMeta,
+  WorkflowSteps,
   shortId,
 } from '@/components/dashboard/shared'
 import { useApiClient, useApiQuery } from '@/hooks/use-api'
 import type { AppUser, AttendanceRow, Batch, Invite, Session, TrainerSession } from '@/lib/api'
+import { cn } from '@/lib/utils'
 
 type RolePanelProps = { user: AppUser }
 
@@ -40,8 +53,13 @@ export function TrainerDashboard({ user }: RolePanelProps) {
   const [inviteBatchId, setInviteBatchId] = useState('')
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null)
   const [attendanceSessionId, setAttendanceSessionId] = useState('')
+  const firstBatchId = batches.data?.batches[0]?.id ?? ''
+  const firstSessionId = sessions.data?.sessions[0]?.id ?? ''
+  const effectiveSessionBatchId = sessionForm.batchId || firstBatchId
+  const effectiveInviteBatchId = inviteBatchId || firstBatchId
+  const effectiveAttendanceSessionId = attendanceSessionId || firstSessionId
   const attendance = useApiQuery<{ session: Session; attendance: AttendanceRow[] }>(
-    attendanceSessionId ? `/api/sessions/${attendanceSessionId}/attendance` : null,
+    effectiveAttendanceSessionId ? `/api/sessions/${effectiveAttendanceSessionId}/attendance` : null,
   )
   const [message, setMessage] = useState<string | null>(null)
 
@@ -95,13 +113,17 @@ export function TrainerDashboard({ user }: RolePanelProps) {
 
   async function createSession(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!sessionForm.batchId || !sessionForm.title.trim()) return
+    if (!effectiveSessionBatchId || !sessionForm.title.trim()) return
 
     setMessage(null)
     try {
       await request('/api/sessions', {
         method: 'POST',
-        body: JSON.stringify({ ...sessionForm, title: sessionForm.title.trim() }),
+        body: JSON.stringify({
+          ...sessionForm,
+          batchId: effectiveSessionBatchId,
+          title: sessionForm.title.trim(),
+        }),
       })
       setSessionForm((current) => ({ ...current, title: '' }))
       setIsSessionModalOpen(false)
@@ -114,11 +136,11 @@ export function TrainerDashboard({ user }: RolePanelProps) {
 
   async function createInvite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!inviteBatchId) return
+    if (!effectiveInviteBatchId) return
 
     setMessage(null)
     try {
-      const response = await request<{ invite: Invite }>(`/api/batches/${inviteBatchId}/invite`, {
+      const response = await request<{ invite: Invite }>(`/api/batches/${effectiveInviteBatchId}/invite`, {
         method: 'POST',
         body: JSON.stringify({ reusable: true }),
       })
@@ -134,7 +156,7 @@ export function TrainerDashboard({ user }: RolePanelProps) {
     try {
       await request('/api/attendance/override', {
         method: 'POST',
-        body: JSON.stringify({ sessionId: attendanceSessionId, studentId, status }),
+        body: JSON.stringify({ sessionId: effectiveAttendanceSessionId, studentId, status }),
       })
       void attendance.reload()
     } catch (error) {
@@ -152,8 +174,40 @@ export function TrainerDashboard({ user }: RolePanelProps) {
       title="Trainer workspace"
       user={user}
     >
-      <div className="grid gap-8">
+      <div className="dashboard-flow grid gap-8">
         {message ? <Message tone={message.includes('Could not') ? 'danger' : 'good'}>{message}</Message> : null}
+
+        <DataSyncBanner
+          detail="Managed batches, session timeline, invite generation, and attendance rows are all pulled from the API."
+          error={batches.error ?? sessions.error ?? attendance.error}
+          isLoading={batches.isLoading || sessions.isLoading || attendance.isLoading}
+          label="Trainer workspace sync"
+        />
+
+        <WorkflowSteps
+          steps={[
+            {
+              label: 'Batch roster',
+              detail: `${batches.data?.batches.length ?? 0} managed`,
+              state: batches.data?.batches.length ? 'complete' : 'active',
+            },
+            {
+              label: 'Schedule',
+              detail: `${sessions.data?.sessions.length ?? 0} sessions`,
+              state: sessions.data?.sessions.length ? 'complete' : 'waiting',
+            },
+            {
+              label: 'Invite',
+              detail: latestInvite ? 'Token generated' : 'Ready for selected batch',
+              state: latestInvite ? 'complete' : effectiveInviteBatchId ? 'active' : 'waiting',
+            },
+            {
+              label: 'Attendance',
+              detail: effectiveAttendanceSessionId ? 'Review roster marks' : 'Select a session',
+              state: effectiveAttendanceSessionId ? 'active' : 'waiting',
+            },
+          ]}
+        />
 
         <ContextGrid
           items={[
@@ -273,7 +327,7 @@ export function TrainerDashboard({ user }: RolePanelProps) {
               label="Batch"
               onChange={(event) => setSessionForm((current) => ({ ...current, batchId: event.target.value }))}
               options={batchOptions}
-              value={sessionForm.batchId}
+              value={effectiveSessionBatchId}
             />
             <TextField
               label="Title"
@@ -316,7 +370,7 @@ export function TrainerDashboard({ user }: RolePanelProps) {
                 label="Batch"
                 onChange={(event) => setInviteBatchId(event.target.value)}
                 options={batchOptions}
-                value={inviteBatchId}
+                value={effectiveInviteBatchId}
               />
               <Button icon={<Link2 className="h-4 w-4" />} type="submit">
                 Generate invite
@@ -327,7 +381,7 @@ export function TrainerDashboard({ user }: RolePanelProps) {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-emerald-900">Batch ID</p>
                   <p className="mt-1 break-all font-mono text-sm text-emerald-800 bg-emerald-100/50 p-2 rounded border border-emerald-200/50 select-all">
-                    {inviteBatchId}
+                    {effectiveInviteBatchId}
                   </p>
                 </div>
                 <div>
@@ -350,7 +404,7 @@ export function TrainerDashboard({ user }: RolePanelProps) {
                 label="Session"
                 onChange={(event) => setAttendanceSessionId(event.target.value)}
                 options={sessionOptions}
-                value={attendanceSessionId}
+                value={effectiveAttendanceSessionId}
               />
             </div>
             <div className="flex-1 divide-y divide-zinc-100 overflow-y-auto max-h-[400px]">
@@ -363,35 +417,56 @@ export function TrainerDashboard({ user }: RolePanelProps) {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
-                      type="button"
+                      aria-pressed={row.status === 'PRESENT'}
+                      className={cn(
+                        'inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all',
+                        row.status === 'PRESENT'
+                          ? 'bg-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-600/20'
+                          : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200',
+                      )}
                       onClick={() => void overrideAttendance(row.student_id, 'PRESENT')}
-                      className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${row.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-600/20' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+                      type="button"
                     >
-                      P
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Present
                     </button>
                     <button
-                      type="button"
+                      aria-pressed={row.status === 'LATE'}
+                      className={cn(
+                        'inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all',
+                        row.status === 'LATE'
+                          ? 'bg-amber-100 text-amber-700 ring-1 ring-inset ring-amber-600/20'
+                          : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200',
+                      )}
                       onClick={() => void overrideAttendance(row.student_id, 'LATE')}
-                      className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${row.status === 'LATE' ? 'bg-amber-100 text-amber-700 ring-1 ring-inset ring-amber-600/20' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+                      type="button"
                     >
-                      L
+                      <Clock3 className="h-3.5 w-3.5" />
+                      Late
                     </button>
                     <button
-                      type="button"
+                      aria-pressed={row.status === 'ABSENT'}
+                      className={cn(
+                        'inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all',
+                        row.status === 'ABSENT'
+                          ? 'bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-600/20'
+                          : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200',
+                      )}
                       onClick={() => void overrideAttendance(row.student_id, 'ABSENT')}
-                      className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${row.status === 'ABSENT' ? 'bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-600/20' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+                      type="button"
                     >
-                      A
+                      <XCircle className="h-3.5 w-3.5" />
+                      Absent
                     </button>
                   </div>
                 </div>
               ))}
-              {attendanceSessionId && attendance.data?.attendance.length === 0 ? (
+              {effectiveAttendanceSessionId && attendance.data?.attendance.length === 0 ? (
                 <div className="p-8">
                   <EmptyState detail="No enrolled students were found for this session." title="No attendance rows" />
                 </div>
               ) : null}
-              {!attendanceSessionId ? (
+              {!effectiveAttendanceSessionId ? (
                 <div className="p-8 text-center text-sm text-zinc-500">Select a session to view or mark attendance.</div>
               ) : null}
             </div>

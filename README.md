@@ -31,7 +31,7 @@ Verification code (if Clerk asks): 424242
 Sign-in flow:
 
 1. Open https://skillbridge-attendance.vercel.app/sign-in
-2. Click the role you want to review — the email address auto-fills.
+2. Click the role you want to review - the email address auto-fills.
 3. Enter the password above and click Continue.
 4. Clerk may send a one-time code to the account inbox for new-device verification.
 5. You will land on that role's live dashboard with real seeded data.
@@ -195,7 +195,10 @@ Deployment guide: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - Institution batch and attendance summaries.
 - Programme Manager programme/institution summaries and deterministic insight card.
 - Monitoring Officer read-only dashboard with no create/edit/delete actions.
+- Role dashboards now show institution, batch, roster, active-session, and data-sync context.
 - Dockerized backend, Railway health checks, and GitHub Actions CI.
+
+Detailed assignment coverage: [docs/ASSIGNMENT_CHECKLIST.md](docs/ASSIGNMENT_CHECKLIST.md)
 
 ## 9. Partial Or Skipped
 

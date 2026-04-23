@@ -10,10 +10,13 @@ import { Badge, Message } from '@/components/ui/status'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 import {
   ContextGrid,
+  DataSyncBanner,
   LoadingBlock,
   PeopleCount,
+  ProgressBar,
   ProgrammeOverview,
   SectionTitle,
+  WorkflowSteps,
   formatRate,
 } from '@/components/dashboard/shared'
 import { Modal } from '@/components/ui/modal'
@@ -79,8 +82,40 @@ export function ProgrammeManagerDashboard({ user }: RolePanelProps) {
       title="Programme command center"
       user={user}
     >
-      <div className="grid gap-8">
+      <div className="dashboard-flow grid gap-8">
         {message ? <Message tone={message.includes('Could not') ? 'danger' : 'good'}>{message}</Message> : null}
+        <DataSyncBanner
+          detail="Programme managers can inspect every institution, create new institutions, and compare batch attendance trends."
+          error={summary.error ?? institutions.error ?? institutionSummary.error}
+          isLoading={summary.isLoading || institutions.isLoading || institutionSummary.isLoading}
+          label="Programme workspace sync"
+        />
+
+        <WorkflowSteps
+          steps={[
+            {
+              label: 'Programme',
+              detail: `${summary.data?.institutions.length ?? 0} institutions`,
+              state: summary.data ? 'complete' : 'waiting',
+            },
+            {
+              label: 'Institution',
+              detail: institutionSummary.data?.institution.name ?? 'Select one',
+              state: activeInstitutionId ? 'active' : 'waiting',
+            },
+            {
+              label: 'Batches',
+              detail: `${institutionSummary.data?.batches.length ?? 0} tracked`,
+              state: institutionSummary.data ? 'complete' : 'waiting',
+            },
+            {
+              label: 'Action',
+              detail: 'Create institution when expansion is needed',
+              state: 'active',
+            },
+          ]}
+        />
+
         {summary.isLoading ? <LoadingBlock /> : null}
         {summary.data ? <ProgrammeOverview summary={summary.data} /> : null}
         {summary.error ? <Message tone="danger">{summary.error}</Message> : null}
@@ -143,7 +178,7 @@ export function ProgrammeManagerDashboard({ user }: RolePanelProps) {
             </div>
             <div className="flex-1 divide-y divide-zinc-100 overflow-y-auto max-h-72">
               {institutionSummary.data?.batches.map((batch) => (
-                <div className="flex items-center justify-between gap-3 px-5 py-4 text-sm hover:bg-zinc-50/50 transition-colors" key={batch.batch_id}>
+                <div className="grid gap-3 px-5 py-4 text-sm transition-colors hover:bg-zinc-50/50 sm:grid-cols-[1fr_180px_auto] sm:items-center" key={batch.batch_id}>
                   <div>
                     <span className="block font-medium text-zinc-950">{batch.batch_name}</span>
                     <span className="mt-2 flex flex-wrap gap-2">
@@ -151,6 +186,7 @@ export function ProgrammeManagerDashboard({ user }: RolePanelProps) {
                       <PeopleCount count={batch.session_count} label="sessions" />
                     </span>
                   </div>
+                  <ProgressBar value={batch.attendance_rate} />
                   <Badge tone={batch.attendance_rate >= 75 ? 'good' : 'warn'}>
                     {formatRate(batch.attendance_rate)}
                   </Badge>
