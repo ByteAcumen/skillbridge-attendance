@@ -1,10 +1,12 @@
 # SkillBridge Attendance
 
-SkillBridge Attendance is a full-stack prototype for a fictional state-level skilling programme. It supports five roles: Student, Trainer, Institution, Programme Manager, and Monitoring Officer. Each role signs in with Clerk, then sees a focused dashboard backed by real REST API calls and PostgreSQL data.
+Full-stack attendance management prototype for a fictional state-level skilling programme called SkillBridge. Five roles — Student, Trainer, Institution, Programme Manager, Monitoring Officer — each log in with Clerk and see a focused dashboard backed by real API calls and PostgreSQL data.
 
-This project was built for a 2-3 day take-home assignment, so the priority is a working, honest, deployable MVP rather than a polished enterprise product.
+Built as a 2–3 day take-home assignment. Priority is a working, honest, deployable MVP rather than a polished enterprise product.
 
-## Live URLs
+---
+
+## 1. Live URLs
 
 | Service | URL |
 | --- | --- |
@@ -13,160 +15,32 @@ This project was built for a 2-3 day take-home assignment, so the priority is a 
 | API base URL | https://skillbridge-attendance-production.up.railway.app |
 | Health check | https://skillbridge-attendance-production.up.railway.app/health |
 
-## Test Accounts
+---
 
-Sign up on the live frontend at https://skillbridge-attendance.vercel.app/sign-up using the credentials below. After signing in you will land on the onboarding page where you select a role — pick the one matching the account you are testing.
+## 2. Test Accounts
 
-**All accounts use the same password:**
-```
-SkillBridge@2026!
-```
+All five accounts use the same password. Sign up at the live frontend and select the matching role on the onboarding screen.
+
+**Password for all accounts:** `SkillBridge@2026!`
 
 | Role | Email |
 | --- | --- |
-| Student | `skillbridge.student@gmail.com` |
-| Trainer | `skillbridge.trainer@gmail.com` |
-| Institution | `skillbridge.institution@gmail.com` |
-| Programme Manager | `skillbridge.manager@gmail.com` |
-| Monitoring Officer | `skillbridge.monitor@gmail.com` |
+| Student | hemanth.kumar04hh+student@gmail.com |
+| Trainer | hemanth.kumar04hh+trainer@gmail.com |
+| Institution | hemanth.kumar04hh+institution@gmail.com |
+| Programme Manager | hemanth.kumar04hh+manager@gmail.com |
+| Monitoring Officer | hemanth.kumar04hh+monitor@gmail.com |
 
-> **Note:** These accounts must be created manually on the live Vercel deployment before submission. Visit each email's sign-up URL above, complete Clerk's email verification, and on the onboarding screen select the matching role. The accounts will then persist in the Neon database.
+> Gmail `+alias` addresses all land in the same inbox (`hemanth.kumar04hh@gmail.com`), so Clerk verification emails are easy to access for all five accounts.
 
-If Clerk sends a verification code to the email during sign-up, check the inbox for that Gmail address. For Clerk test-mode accounts the magic code is always `424242`.
+**Sign-up flow:**
+1. Go to https://skillbridge-attendance.vercel.app/sign-up
+2. Enter the email and password above
+3. Verify the email code sent to `hemanth.kumar04hh@gmail.com`
+4. On the onboarding screen, select the role matching the account (e.g. Student for the student email)
+5. Click "Continue to dashboard" — you will see that role's live dashboard
 
-
-## Seeded Demo Data
-
-The seed scripts create enough real data to test every role immediately.
-
-| Item | ID / Value | Used by |
-| --- | --- | --- |
-| Institution | `inst_demo_state_polytechnic` | Institution, Programme Manager, Monitoring Officer |
-| Demo batch | `batch_demo_frontend_1` | Student, Trainer, Institution |
-| Active demo session | `session_demo_active_react` | Student attendance marking |
-| Clerk test batch | `batch_test_frontend_accounts` | Frontend login test accounts |
-| Clerk test session | `session_test_active_accounts` | Frontend student dashboard |
-
-## Tech Stack
-
-| Layer | Tooling | Why |
-| --- | --- | --- |
-| Frontend | Next.js 16 App Router, React 19, TypeScript | Vercel-ready UI with clean routing and modern React. |
-| Styling | Tailwind CSS v4, Lucide icons, reusable components | Professional interface without heavy UI dependencies. |
-| Auth | Clerk | Hosted sign-in/sign-up, JWTs, user management, test-mode accounts. |
-| Backend | Hono, TypeScript, Zod | Fast REST API with simple route/middleware structure. |
-| Database | PostgreSQL, Drizzle ORM | Real relational schema with typed queries and migrations. |
-| Dev database | Docker Postgres | Local reproducible database. |
-| Deployment | Vercel frontend, Railway/Render backend, Neon DB | Free-tier friendly assignment stack. |
-| CI/CD | GitHub Actions | Frontend, backend, Docker build, and integration smoke checks. |
-| AI feature | Deterministic insights card | AI-style recommendations without requiring paid LLM keys. |
-
-## Assignment Alignment
-
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Five roles can sign up and log in | Done | Clerk auth plus `/onboarding` role selection. |
-| Role-specific dashboard routing | Done | `/dashboard` renders Student, Trainer, Institution, Programme Manager, or Monitoring Officer views. |
-| Backend verifies auth and role | Done | Every protected route checks the bearer token and local role server-side. |
-| Trainer batch invite links | Done | Trainers generate reusable invite tokens; students join batches with token + batch ID. |
-| Required data model | Done | Users, batches, batch trainers, batch students, sessions, attendance, plus institutions and invites. |
-| Required REST endpoints | Done | Implemented under a conventional `/api` prefix. Example: assignment `/batches` is `/api/batches`. |
-| Real API-backed frontend data | Done | Dashboards call the backend; core role data is not hardcoded. |
-| Monitoring Officer read-only access | Done | UI has no mutation controls and backend returns `403` for writes. |
-| Deployment documentation | Done | Vercel, Railway, Render, Neon, and Clerk checklist included in `docs/DEPLOYMENT.md`. |
-| CI/CD and Docker | Done | CI runs frontend/backend checks and Docker build; CD workflow is manual for Railway secrets. |
-
-## What Works
-
-- Clerk sign-up and sign-in.
-- Role onboarding through `POST /api/me/sync`.
-- Server-side token verification and role authorization.
-- Student active sessions and attendance marking.
-- Trainer batch/session creation, invite generation, and attendance views.
-- Institution batch summaries.
-- Programme Manager programme and institution summaries.
-- Monitoring Officer read-only analytics.
-- Dev Postman tokens for quick API testing.
-- Docker backend build and compose setup.
-- GitHub Actions CI for frontend, backend, Docker, and integration checks.
-
-## Project Structure
-
-```text
-skillbridge-attendance/
-  frontend/             Next.js App Router frontend
-  backend/              Hono + Drizzle REST API
-  docs/                 Plan, API reference, deployment notes
-  .github/workflows/    CI pipeline
-  CONTACT.txt
-  README.md
-```
-
-## Local Setup
-
-Install dependencies:
-
-```powershell
-cd D:\skillbridge-attendance
-npm install --prefix frontend
-npm install --prefix backend
-```
-
-Create environment files:
-
-```powershell
-Copy-Item frontend\.env.example frontend\.env.local
-Copy-Item backend\.env.example backend\.env
-```
-
-Make sure frontend and backend use the same Clerk app:
-
-```text
-frontend/.env.local
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
-  CLERK_SECRET_KEY=...
-  NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
-
-backend/.env
-  CLERK_PUBLISHABLE_KEY=...
-  CLERK_SECRET_KEY=...
-  FRONTEND_URL=http://localhost:3000
-```
-
-Prepare the database:
-
-```powershell
-cd D:\skillbridge-attendance\backend
-npm run db:migrate
-npm run db:seed
-npm run accounts:seed
-```
-
-Run backend:
-
-```powershell
-cd D:\skillbridge-attendance\backend
-npm run dev
-```
-
-Run frontend:
-
-```powershell
-cd D:\skillbridge-attendance\frontend
-npm run dev
-```
-
-## API Testing
-
-For Postman, use:
-
-```text
-Authorization: Bearer user_seed_student
-```
-
-For real Clerk login testing, sign in with the test account email/password above. In the browser, Clerk issues a session token automatically; the frontend attaches it to API calls.
-
-Dev tokens:
+**API testing via Postman (dev backdoor tokens):**
 
 | Token | Role |
 | --- | --- |
@@ -176,69 +50,161 @@ Dev tokens:
 | `user_seed_manager` | Programme Manager |
 | `user_seed_monitor` | Monitoring Officer |
 
-Full API reference: [docs/API.md](docs/API.md).
+```
+Authorization: Bearer user_seed_student
+```
 
-Quick Postman examples:
+---
 
-| Goal | Method and URL | Token |
+## 3. Local Setup
+
+**Prerequisites:** Node.js 20+, Docker (for local Postgres)
+
+**Install dependencies:**
+```bash
+npm install --prefix frontend
+npm install --prefix backend
+```
+
+**Create environment files:**
+```bash
+cp frontend/.env.example frontend/.env.local
+cp backend/.env.example backend/.env
+```
+
+**Fill in `.env.local` (frontend):**
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+```
+
+**Fill in `.env` (backend):**
+```
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/skillbridge
+CLERK_SECRET_KEY=sk_test_...
+FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
+PORT=4000
+```
+
+**Start local Postgres with Docker:**
+```bash
+docker compose -f backend/docker-compose.yml up -d
+```
+
+**Run migrations and seed data:**
+```bash
+cd backend
+npm run db:migrate
+npm run db:seed
+npm run accounts:seed
+```
+
+**Run backend:**
+```bash
+cd backend
+npm run dev
+```
+
+**Run frontend (in a second terminal):**
+```bash
+cd frontend
+npm run dev
+```
+
+Frontend: http://localhost:3000  
+Backend: http://localhost:4000  
+Health: http://localhost:4000/health
+
+---
+
+## 4. Schema Decisions
+
+**`users`** stores a `clerk_user_id` (the Clerk JWT subject) alongside our own `id`, `role`, and an optional `institution_id`. The role lives here rather than in Clerk metadata so the backend can enforce it with a single DB lookup — no Clerk API call needed on every request.
+
+**`institutions`** is a first-class table so trainers and students can be scoped to an institution without adding columns to `users`. An `institution_id` on `users` is nullable so Programme Managers and Monitoring Officers, who span all institutions, don't need a fake value.
+
+**`batch_trainers` and `batch_students`** are explicit join tables (many-to-many). A batch can have multiple trainers, and a student can be in multiple batches. The join table pattern keeps the core tables clean and avoids JSON arrays in columns.
+
+**`invites`** has a `token` (UUID), `reusable` boolean, `max_uses`, `uses_count`, and an optional `expires_at`. This lets a trainer generate a single link for a whole cohort (`reusable: true`) or a one-time link for a single student.
+
+**`sessions`** stores `date`, `start_time`, and `end_time` as plain strings (`YYYY-MM-DD` and `HH:MM`). No timestamp with timezone arithmetic — the configured `PROGRAMME_TIME_ZONE` env var is applied server-side when checking whether a session is "active right now" for a student.
+
+**`attendance`** has a unique constraint on `(session_id, student_id)` so a student can only have one record per session. `ON CONFLICT DO UPDATE` in the mark-attendance route lets students correct a wrong status without a separate PATCH endpoint.
+
+---
+
+## 5. Stack Choices
+
+| Layer | Choice | Why |
 | --- | --- | --- |
-| Current student profile | `GET http://localhost:4000/api/me` | `user_seed_student` |
-| Student active sessions | `GET http://localhost:4000/api/sessions/active` | `user_seed_student` |
-| Trainer batches | `GET http://localhost:4000/api/batches` | `user_seed_trainer` |
-| Institution batch summary | `GET http://localhost:4000/api/batches/batch_demo_frontend_1/summary` | `user_seed_institution` |
-| Programme summary | `GET http://localhost:4000/api/programme/summary` | `user_seed_manager` or `user_seed_monitor` |
+| Frontend | Next.js 16 App Router + React 19 | Assignment recommends Vercel; App Router gives server components, built-in routing, and easy Clerk middleware integration. |
+| Styling | Tailwind CSS v4 + Lucide icons | Ships zero runtime CSS. Utility classes keep all styling co-located with components. |
+| Auth | Clerk | Hosted sign-up/sign-in, email verification, JWT issuance, and a test-mode that works with `+alias` emails. No auth infrastructure to maintain. |
+| Backend | Hono + TypeScript | Lightweight, typed, middleware-first framework. Zero-overhead request routing; works with Node or edge runtimes. |
+| ORM | Drizzle + drizzle-kit | Fully typed SQL queries. Migrations are plain SQL files — easy to inspect and version. No magic. |
+| Database | Neon (hosted PostgreSQL) | Free tier, HTTP-compatible driver, instant branching. Matches the assignment recommendation exactly. |
+| Deployment | Vercel (frontend) + Railway (backend) | Both have free tiers, automatic GitHub deploys, and environment variable management through their dashboards. |
+| CI | GitHub Actions | Runs type-check, lint, unit tests, Docker build, and an integration smoke test on every push to `main`. |
+| Validation | Zod | Used on both backend (request body parsing) and frontend (form inputs). Single source of truth for shapes. |
 
-## Verification
+---
 
-Frontend:
+## 6. What Works, What Is Partial, What Was Skipped
 
-```powershell
-cd D:\skillbridge-attendance\frontend
-npm run lint
-npm run typecheck
-npm run build
+### Fully working
+- Clerk sign-up and sign-in for all five roles
+- Onboarding screen (`/onboarding`) — user picks a role, `POST /api/me/sync` creates the DB record
+- Server-side JWT verification and role enforcement on every protected endpoint (403 on wrong role)
+- **Student**: views active sessions, marks attendance (`POST /api/attendance/mark`)
+- **Trainer**: creates sessions, views session attendance, generates and shares invite links
+- **Institution**: views all batches and their attendance summary
+- **Programme Manager**: programme-wide summary across all institutions
+- **Monitoring Officer**: read-only programme analytics — no create/edit/delete controls anywhere in the UI
+- Invite link flow: Trainer generates token → Student visits `/batches/:id/join?token=...` → joins batch
+- GitHub Actions CI (typecheck, lint, tests, Docker build, smoke test)
+- Railway deployment with Dockerfile and healthcheck at `/health`
+- Vercel deployment with automatic redeploys on push to `main`
+
+### Partially working
+- Student attendance marking only works for sessions active at the current server time in `Asia/Kolkata`. If no session is active when the evaluator tests, the student dashboard will show an empty session list (the data is correct, the timing just has to align).
+- The "Insights" card on the Programme Manager and Monitoring Officer dashboards uses deterministic rules (attendance rate thresholds) rather than a live LLM. The logic is real; the text is rule-generated.
+
+### Skipped
+- Playwright end-to-end tests (unit and integration tests are present)
+- Audit log for mutations
+- Institution-to-trainer invitation workflow (trainers are currently added to institutions via seed data or direct DB insert)
+- Production observability / error tracking (Sentry or similar)
+
+---
+
+## 7. What I Would Do Differently With More Time
+
+I would replace the manual `POST /api/me/sync` onboarding step with a **Clerk webhook** (`user.created` event). Right now, the user must complete the onboarding form before any protected route works. With a webhook, the backend creates the user row the moment Clerk confirms the sign-up — the onboarding screen becomes purely a role-selection UI, and the "User not synced" error path disappears entirely. It is the cleanest fix for the most friction-heavy part of the current flow.
+
+---
+
+## Project Structure
+
+```
+skillbridge-attendance/
+  frontend/           Next.js App Router frontend
+  backend/            Hono + Drizzle REST API
+  docs/               API reference, deployment notes, schema plan
+  .github/workflows/  CI and CD pipelines
+  CONTACT.txt
+  README.md
 ```
 
-Backend:
+## Full API Reference
 
-```powershell
-cd D:\skillbridge-attendance\backend
-npm run typecheck
-npm test
-npm run build
-```
+See [docs/API.md](docs/API.md) for all endpoints with example requests and responses.
 
-Docker backend:
+## Deployment Checklist
 
-```powershell
-cd D:\skillbridge-attendance\backend
-docker build -t skillbridge-api:local .
-docker compose up --build
-docker compose run --rm migrate sh -c "npm run db:seed"
-docker compose run --rm migrate sh -c "npm run accounts:seed"
-```
-
-## Deployment
-
-- Vercel: deploy `frontend/`.
-- Railway: deploy `backend/` with Dockerfile or `npm run build && npm start`.
-- Render fallback: deploy `backend/` as a Web Service.
-- Neon: hosted PostgreSQL.
-- Clerk: auth provider for frontend/backend.
-- GitHub Actions: CI runs automatically; Railway CD can be triggered manually after adding repository secrets.
-
-Deployment checklist: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
-
-## Submission Notes
-
-- Update the Live URLs section after deployment.
-- Update `CONTACT.txt` with final personal contact details before uploading the Google Drive submission folder.
-- Keep `.env`, `.env.local`, and hosted secrets out of GitHub.
-
-## What I Would Improve With More Time
-
-- Add Playwright E2E tests for all five roles.
-- Add audit logs for every mutation.
-- Add institution/trainer invitation workflows.
-- Add production observability and error tracking.
-- Add optional LLM-generated insight summaries behind a feature flag.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for step-by-step Railway, Vercel, Neon, and Clerk setup.

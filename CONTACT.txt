@@ -1,5 +1,5 @@
 Full name: Hemanth Kumar
-Email: hemantharish04@gmail.com
-Phone: [ADD YOUR PHONE NUMBER]
+Email: hemanth.kumar04hh@gmail.com
+Phone: 8488834807
 GitHub profile: https://github.com/ByteAcumen
-Most challenging part: Keeping Clerk authentication, local role sync, and server-side role permissions consistent across all five dashboards without a double-write or stale state.
+Most challenging part: Keeping Clerk JWT verification, the local role-sync step, and server-side role enforcement consistent across all five dashboards without a stale-state or double-write bug.
