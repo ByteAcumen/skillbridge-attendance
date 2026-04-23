@@ -8,48 +8,32 @@ This project was built for a 2-3 day take-home assignment, so the priority is a 
 
 | Service | URL |
 | --- | --- |
-| Frontend | TBD - deploy `frontend/` to Vercel |
-| Backend | TBD - deploy `backend/` to Railway or Render |
-| API base URL | TBD - local default is `http://localhost:4000` |
-
-The app is deployment-ready, but the final public URLs should be filled in after Vercel/Railway deployment.
-
-## Current Local URLs
-
-| Service | URL |
-| --- | --- |
-| Frontend | `http://localhost:3000` |
-| Backend | `http://localhost:4000` |
-| Health check | `http://localhost:4000/health` |
+| Frontend | https://skillbridge-attendance.vercel.app |
+| Backend | https://skillbridge-attendance-production.up.railway.app |
+| API base URL | https://skillbridge-attendance-production.up.railway.app |
+| Health check | https://skillbridge-attendance-production.up.railway.app/health |
 
 ## Test Accounts
 
-These are Clerk development test accounts. If Clerk asks for an email verification or new-device code, use:
+Sign up on the live frontend at https://skillbridge-attendance.vercel.app/sign-up using the credentials below. After signing in you will land on the onboarding page where you select a role — pick the one matching the account you are testing.
 
-```text
-424242
+**All accounts use the same password:**
 ```
-
-Password for all accounts:
-
-```text
 SkillBridge@2026!
 ```
 
 | Role | Email |
 | --- | --- |
-| Student | `student+clerk_test@example.com` |
-| Trainer | `trainer+clerk_test@example.com` |
-| Institution | `institution+clerk_test@example.com` |
-| Programme Manager | `manager+clerk_test@example.com` |
-| Monitoring Officer | `monitor+clerk_test@example.com` |
+| Student | `skillbridge.student@gmail.com` |
+| Trainer | `skillbridge.trainer@gmail.com` |
+| Institution | `skillbridge.institution@gmail.com` |
+| Programme Manager | `skillbridge.manager@gmail.com` |
+| Monitoring Officer | `skillbridge.monitor@gmail.com` |
 
-Recreate or refresh these accounts:
+> **Note:** These accounts must be created manually on the live Vercel deployment before submission. Visit each email's sign-up URL above, complete Clerk's email verification, and on the onboarding screen select the matching role. The accounts will then persist in the Neon database.
 
-```powershell
-cd D:\skillbridge-attendance\backend
-npm run accounts:seed
-```
+If Clerk sends a verification code to the email during sign-up, check the inbox for that Gmail address. For Clerk test-mode accounts the magic code is always `424242`.
+
 
 ## Seeded Demo Data
 
