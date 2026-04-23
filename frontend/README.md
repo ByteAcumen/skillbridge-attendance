@@ -1,6 +1,17 @@
-# SkillBridge Attendance Frontend
+# SkillBridge Frontend
 
-Modern Next.js App Router frontend for the SkillBridge attendance prototype. It provides a polished landing page, Clerk-powered auth screens, role onboarding, and API-backed dashboards for Student, Trainer, Institution, Programme Manager, and Monitoring Officer users.
+Frontend application for the SkillBridge Attendance assignment. This app is built with Next.js App Router, React, Tailwind CSS, and Clerk. It provides the landing page, role-aware sign-in/sign-up, onboarding, and dashboards for all five assignment roles.
+
+For live URLs, reviewer accounts, Task 5 coverage, and submission instructions, use the root [README.md](../README.md). This file is the frontend-specific companion.
+
+## What The Frontend Does
+
+- Shows a public landing page with role overview and reviewer account entry points.
+- Uses Clerk for sign-in and sign-up.
+- Routes a signed-in user through onboarding if the backend user row is not synced yet.
+- Displays a different dashboard for Student, Trainer, Institution, Programme Manager, and Monitoring Officer.
+- Calls the backend API with Clerk bearer tokens for protected data.
+- Keeps Monitoring Officer screens read-only.
 
 ## Stack
 
@@ -8,32 +19,52 @@ Modern Next.js App Router frontend for the SkillBridge attendance prototype. It 
 - React 19
 - TypeScript
 - Tailwind CSS v4
-- Clerk for authentication
-- Lucide React icons
-- Backend API: `NEXT_PUBLIC_API_BASE_URL` or `http://localhost:4000`
+- Clerk
+- Lucide icons
 
 ## Local Development
 
+1. Install dependencies:
+
 ```bash
 npm install
+```
+
+2. Create `frontend/.env.local` and set:
+
+```text
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/onboarding
+```
+
+3. Start the frontend:
+
+```bash
 npm run dev
 ```
 
-Open:
+4. Open:
 
 ```text
 http://localhost:3000
 ```
 
-Clerk keyless mode works when no Clerk keys are present in `.env.local`. If you add real Clerk keys later, make sure `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` come from the same Clerk application.
+The frontend expects the backend API to be running locally on port `4000` unless `NEXT_PUBLIC_API_BASE_URL` points to a deployed backend.
 
-## Routes
+## Main Routes
 
-- `/` - landing page
-- `/sign-in` - Clerk sign-in
-- `/sign-up` - Clerk sign-up
-- `/onboarding` - role selection and backend user sync
-- `/dashboard` - role-aware workspace
+| Route | Purpose |
+| --- | --- |
+| `/` | Landing page and reviewer role entry points |
+| `/sign-in` | Clerk sign-in |
+| `/sign-up` | Clerk sign-up |
+| `/onboarding` | Role selection and backend sync |
+| `/dashboard` | Role-aware workspace |
 
 ## Verification
 
@@ -43,4 +74,8 @@ npm run typecheck
 npm run build
 ```
 
-The dashboard fetches real data from the backend and depends on the backend server running locally or through a deployed API URL.
+## Notes
+
+- Reviewer test accounts are documented in the root README.
+- If you use real Clerk keys, keep frontend and backend on the same Clerk application.
+- The frontend uses real backend data; it is not wired to hardcoded dashboard mock data.
