@@ -1,10 +1,10 @@
 'use client'
 
 import { useAuth } from '@clerk/nextjs'
-import { ArrowRight, Loader2 } from 'lucide-react'
-import Link from 'next/link'
+import { Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import { Message } from '@/components/ui/status'
 import { useApiQuery } from '@/hooks/use-api'
 import type { AppUser } from '@/lib/api'
 import {
@@ -21,63 +21,36 @@ function LoadingWorkspace() {
     <main className="grid min-h-[calc(100svh-4rem)] place-items-center px-4">
       <Card className="grid min-h-52 w-full max-w-md place-items-center text-center">
         <Loader2 className="h-7 w-7 animate-spin text-emerald-700" />
-        <p className="text-sm font-medium text-zinc-600">Loading workspace</p>
-      </Card>
-    </main>
-  )
-}
-
-function SignedOutWorkspace() {
-  return (
-    <main className="grid min-h-[calc(100svh-4rem)] place-items-center px-4">
-      <Card className="max-w-md">
-        <h1 className="text-2xl font-semibold text-zinc-950">Sign in required</h1>
-        <p className="mt-3 text-sm leading-6 text-zinc-600">
-          SkillBridge dashboards are tied to your Clerk identity and backend role.
-        </p>
-        <Link
-          className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition hover:bg-emerald-700"
-          href="/sign-in"
-        >
-          Sign in
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </Card>
-    </main>
-  )
-}
-
-function OnboardingRequired({ error }: { error?: string | null }) {
-  return (
-    <main className="grid min-h-[calc(100svh-4rem)] place-items-center px-4">
-      <Card className="max-w-lg">
-        <h1 className="text-2xl font-semibold text-zinc-950">Finish profile setup</h1>
-        <p className="mt-3 text-sm leading-6 text-zinc-600">
-          The backend needs a SkillBridge role before it can open the correct dashboard.
-        </p>
-        {error ? <Message tone="warn"><span>{error}</span></Message> : null}
-        <Link
-          className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition hover:bg-emerald-700"
-          href="/onboarding"
-        >
-          Continue setup
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <p className="text-sm font-medium text-zinc-600">Loading workspace…</p>
       </Card>
     </main>
   )
 }
 
 export function DashboardRouter() {
+  const router = useRouter()
   const { isLoaded, isSignedIn } = useAuth()
   const profile = useApiQuery<{ user: AppUser | null }>(
     isLoaded && isSignedIn ? '/api/me' : null,
   )
 
-  if (!isLoaded) return <LoadingWorkspace />
-  if (!isSignedIn) return <SignedOutWorkspace />
-  if (profile.isLoading) return <LoadingWorkspace />
-  if (profile.error || !profile.data?.user) return <OnboardingRequired error={profile.error} />
+  // Not signed in → middleware handles redirect, but belt-and-suspenders
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace('/sign-in')
+    }
+  }, [isLoaded, isSignedIn, router])
+
+  // Profile fetch failed or user not synced → go to onboarding automatically
+  useEffect(() => {
+    if (!profile.isLoading && (profile.error || (profile.data && !profile.data.user))) {
+      router.replace('/onboarding')
+    }
+  }, [profile.isLoading, profile.error, profile.data, router])
+
+  if (!isLoaded || profile.isLoading) return <LoadingWorkspace />
+  if (!isSignedIn) return <LoadingWorkspace />
+  if (profile.error || !profile.data?.user) return <LoadingWorkspace />
 
   const { user } = profile.data
 
