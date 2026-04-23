@@ -17,15 +17,16 @@ All reviewer accounts use:
 
 ```text
 Password: SkillBridge@2026!
+Verification code (if Clerk asks): 424242
 ```
 
 | Role | Direct sign-in | Email | Seeded data |
 | --- | --- | --- | --- |
-| Student | `/sign-in?role=student` | `student.skillbridge2026@gmail.com` | Enrolled in the demo cohort with one active session |
-| Trainer | `/sign-in?role=trainer` | `trainer.skillbridge2026@gmail.com` | Manages the demo cohort and can create sessions/invites |
-| Institution | `/sign-in?role=institution` | `institution.skillbridge2026@gmail.com` | Scoped to State Polytechnic Institute |
-| Programme Manager | `/sign-in?role=programme-manager` | `manager.skillbridge2026@gmail.com` | Can view programme and institution summaries |
-| Monitoring Officer | `/sign-in?role=monitoring-officer` | `monitor.skillbridge2026@gmail.com` | Read-only programme and institution oversight |
+| Student | `/sign-in?role=student` | `student+clerk_test@skillbridge.dev` | Enrolled in the demo cohort with one active session |
+| Trainer | `/sign-in?role=trainer` | `trainer+clerk_test@skillbridge.dev` | Manages the demo cohort and can create sessions/invites |
+| Institution | `/sign-in?role=institution` | `institution+clerk_test@skillbridge.dev` | Scoped to State Polytechnic Institute |
+| Programme Manager | `/sign-in?role=programme-manager` | `manager+clerk_test@skillbridge.dev` | Can view programme and institution summaries |
+| Monitoring Officer | `/sign-in?role=monitoring-officer` | `monitor+clerk_test@skillbridge.dev` | Read-only programme and institution oversight |
 
 Sign-in flow:
 
